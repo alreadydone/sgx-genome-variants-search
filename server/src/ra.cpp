@@ -858,7 +858,7 @@ int do_quote(sgx_enclave_id_t eid, config_t *config)
     uint32_t sz= 0;
     uint32_t flags= config->flags;
     sgx_quote_sign_type_t linkable= SGX_UNLINKABLE_SIGNATURE;
-    sgx_ps_cap_t ps_cap;
+    //sgx_ps_cap_t ps_cap;
     char *pse_manifest = NULL;
     size_t pse_manifest_sz;
 #ifdef _WIN32
@@ -875,11 +875,11 @@ int do_quote(sgx_enclave_id_t eid, config_t *config)
 
     /* Platform services info */
     if (OPT_ISSET(flags, OPT_PSE)) {
-        status = sgx_get_ps_cap(&ps_cap);
+        /*status = sgx_get_ps_cap(&ps_cap);
         if (status != SGX_SUCCESS) {
             fprintf(stderr, "sgx_get_ps_cap: %08x\n", status);
             return 1;
-        }
+        }*/
 
         status = get_pse_manifest_size(eid, &pse_manifest_sz);
         if (status != SGX_SUCCESS) {

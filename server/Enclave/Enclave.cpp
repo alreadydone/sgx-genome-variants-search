@@ -20,7 +20,7 @@ in the License.
 #include <stdlib.h>
 #include <string.h>
 #include <sgx_utils.h>
-#include <sgx_tae_service.h>
+//#include <sgx_tae_service.h>
 #include <sgx_tkey_exchange.h>
 
 static const sgx_ec256_public_t def_service_public_key = {

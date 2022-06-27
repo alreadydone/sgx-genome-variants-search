@@ -110,6 +110,14 @@ static int l_sgx_thread_set_multiple_untrusted_events_ocall= 0;
 static int l_invoke_service_ocall= 0;
 static int l_sgx_get_quote= 0;
 
+
+typedef struct _sgx_ps_cap_t
+{
+    uint32_t ps_cap0;
+    uint32_t ps_cap1;
+} sgx_ps_cap_t;
+// added
+
 static void _undefined_symbol (const char *symbol)
 {
 	fprintf(stderr, "%s: %s\n", symbol, dlerr);

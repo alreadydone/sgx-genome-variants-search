@@ -4,7 +4,7 @@ SGX_SDK ?= /opt/intel/sgxsdk
 SGX_MODE ?= HW
 SGX_ARCH ?= x64
 SGX_PRERELEASE ?= 0
-OpenSSL_Path ?= /opt/openssl/1.1.0i
+OpenSSL_Path ?= /u/xu56/openssl/openssl-1.1.0i#/opt/openssl/1.1.0i
 Curl_Path ?= 
 SGX_SSL_Dir ?= /opt/intel/sgxssl
 
@@ -91,9 +91,9 @@ Crypto_Library_Name := sgx_tcrypto
 SGXSSL_Library_Name := sgx_tsgxssl
 OpenSSL_Crypto_Library_Name := sgx_tsgxssl_crypto 
 
-Enclave_C_Files := Enclave/Enclave.cpp Enclave/app.cpp Enclave/enclave_crypto.cpp Enclave/enclave_rhht.cpp Enclave/enclave_cmtf.cpp Enclave/enclave_cms.cpp Enclave/enclave_mh.cpp Enclave/enclave_oa.cpp Enclave/enclave_csk.cpp Enclave/enclave_mcsk.cpp Enclave/util.cpp Enclave/svd.cpp
+Enclave_C_Files := Enclave/app.cpp Enclave/enclave_crypto.cpp Enclave/enclave_rhht.cpp Enclave/enclave_cmtf.cpp Enclave/enclave_cms.cpp Enclave/enclave_mh.cpp Enclave/enclave_oa.cpp Enclave/enclave_csk.cpp Enclave/enclave_mcsk.cpp Enclave/util.cpp Enclave/svd.cpp
 
-Enclave_Include_Paths := -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -Iinclude -I$(SGX_SSL_Dir)/include
+Enclave_Include_Paths := -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -Iinclude -I$(SGX_SSL_Dir)/include -I$(OpenSSL_Path)/include
 Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths) -g
 
 SgxSSL_Link_Libraries := -L$(OPENSSL_LIBRARY_PATH) -Wl,--whole-archive -l$(SGXSSL_Library_Name) -Wl,--no-whole-archive -l$(OpenSSL_Crypto_Library_Name)

@@ -1,5 +1,5 @@
 #include <string.h>
-#include <sgx_tae_service.h>
+//#include <sgx_tae_service.h>
 #include <sgx_tkey_exchange.h>
 #include <openssl/evp.h>
 #include "Enclave_t.h"
