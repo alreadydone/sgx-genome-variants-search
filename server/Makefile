@@ -6,7 +6,7 @@ SGX_ARCH ?= x64
 SGX_PRERELEASE ?= 0
 OpenSSL_Path ?= /u/xu56/openssl/openssl-1.1.0i#/opt/openssl/1.1.0i
 Curl_Path ?= 
-SGX_SSL_Dir ?= /opt/intel/sgxssl
+SGX_SSL_Dir ?= /u/xu56/intel-sgx-ssl/Linux/package#/opt/intel/sgxssl
 
 ifeq ($(shell getconf LONG_BIT), 32)
 	SGX_ARCH := x86
@@ -91,16 +91,16 @@ Crypto_Library_Name := sgx_tcrypto
 SGXSSL_Library_Name := sgx_tsgxssl
 OpenSSL_Crypto_Library_Name := sgx_tsgxssl_crypto 
 
-Enclave_C_Files := Enclave/app.cpp Enclave/enclave_crypto.cpp Enclave/enclave_rhht.cpp Enclave/enclave_cmtf.cpp Enclave/enclave_cms.cpp Enclave/enclave_mh.cpp Enclave/enclave_oa.cpp Enclave/enclave_csk.cpp Enclave/enclave_mcsk.cpp Enclave/util.cpp Enclave/svd.cpp
+Enclave_C_Files := Enclave/Enclave.app Enclave/app.cpp Enclave/enclave_crypto.cpp Enclave/enclave_rhht.cpp Enclave/enclave_cmtf.cpp Enclave/enclave_cms.cpp Enclave/enclave_mh.cpp Enclave/enclave_oa.cpp Enclave/enclave_csk.cpp Enclave/enclave_mcsk.cpp Enclave/util.cpp Enclave/svd.cpp
 
-Enclave_Include_Paths := -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -Iinclude -I$(SGX_SSL_Dir)/include -I$(OpenSSL_Path)/include
+Enclave_Include_Paths := -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -Iinclude -I$(SGX_SSL_Dir)/include#-I$(OpenSSL_Path)/include
 Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths) -g
 
 SgxSSL_Link_Libraries := -L$(OPENSSL_LIBRARY_PATH) -Wl,--whole-archive -l$(SGXSSL_Library_Name) -Wl,--no-whole-archive -l$(OpenSSL_Crypto_Library_Name)
 Enclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) -L.\
 	$(SgxSSL_Link_Libraries) \
 	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
-	-Wl,--start-group -lsgx_tstdc -lsgx_tstdcxx -lsgx_tkey_exchange -l$(Crypto_Library_Name) -l$(Service_Library_Name)  -Wl,--end-group \
+	-Wl,--start-group -lsgx_tstdc -lsgx_tcxx -lsgx_tkey_exchange -l$(Crypto_Library_Name) -l$(Service_Library_Name)  -Wl,--end-group \
 	-Wl,-Bstatic -Wl,-Bsymbolic -Wl,--no-undefined \
 	-Wl,-pie,-eenclave_entry -Wl,--export-dynamic  \
 	-Wl,--defsym,__ImageBase=0 \
