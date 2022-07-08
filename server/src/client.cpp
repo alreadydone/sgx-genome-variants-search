@@ -1726,7 +1726,7 @@ int main(int argc, char** argv)
         bool proceed = true; 
 
         if (do_ra) {
-            proceed = !remote_attestation(config, &msgio);
+            //proceed = !remote_attestation(config, &msgio);
         } else {
             fprintf(stderr, "Skipping Remote Attestation.\n");
             proceed = !skip_ra(config, &msgio);
