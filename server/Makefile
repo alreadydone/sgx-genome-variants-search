@@ -4,7 +4,7 @@ SGX_SDK ?= /opt/intel/sgxsdk
 SGX_MODE ?= HW
 SGX_ARCH ?= x64
 SGX_PRERELEASE ?= 0
-OpenSSL_Path ?= /u/xu56/openssl/openssl-1.1.0i#/opt/openssl/1.1.0i
+OpenSSL_Path ?= /u/xu56/openssl_install#/openssl-1.1.0i#/opt/openssl/1.1.0i
 Curl_Path ?= 
 SGX_SSL_Dir ?= /u/xu56/intel-sgx-ssl/Linux/package#/opt/intel/sgxssl
 
