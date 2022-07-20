@@ -4,9 +4,9 @@ SGX_SDK ?= /opt/intel/sgxsdk
 SGX_MODE ?= HW
 SGX_ARCH ?= x64
 SGX_PRERELEASE ?= 0
-OpenSSL_Path ?= /u/xu56/openssl_install#/openssl-1.1.0i#/opt/openssl/1.1.0i
+OpenSSL_Path ?= /u/xu56/openssl_install-1.1.1#/openssl-1.1.0i#/opt/openssl/1.1.0i
 Curl_Path ?= 
-SGX_SSL_Dir ?= /u/xu56/intel-sgx-ssl/Linux/package#/opt/intel/sgxssl
+SGX_SSL_Dir ?= /u/xu56/intel-sgx-ssl-install#/u/xu56/intel-sgx-ssl/Linux/package#/opt/intel/sgxssl
 
 ifeq ($(shell getconf LONG_BIT), 32)
 	SGX_ARCH := x86
@@ -96,7 +96,7 @@ Enclave_C_Files := Enclave/Enclave.cpp Enclave/app.cpp Enclave/enclave_crypto.cp
 Enclave_Include_Paths := -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport -Iinclude -I$(SGX_SSL_Dir)/include#-I$(OpenSSL_Path)/include
 Enclave_C_Flags := $(SGX_COMMON_CFLAGS) -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths) -g
 
-SgxSSL_Link_Libraries := -L$(OPENSSL_LIBRARY_PATH) -Wl,--whole-archive -l$(SGXSSL_Library_Name) -Wl,--no-whole-archive -l$(OpenSSL_Crypto_Library_Name)
+SgxSSL_Link_Libraries := -L$(OPENSSL_LIBRARY_PATH) -Wl,--whole-archive -lsgx_pthread -l$(SGXSSL_Library_Name) -Wl,--no-whole-archive -l$(OpenSSL_Crypto_Library_Name)
 Enclave_Link_Flags := $(SGX_COMMON_CFLAGS) -Wl,--no-undefined -nostdlib -nodefaultlibs -nostartfiles -L$(SGX_LIBRARY_PATH) -L.\
 	$(SgxSSL_Link_Libraries) \
 	-Wl,--whole-archive -l$(Trts_Library_Name) -Wl,--no-whole-archive \
