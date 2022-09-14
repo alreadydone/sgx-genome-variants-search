@@ -6,9 +6,7 @@ app
 *.so
 Enclave_u.*
 Enclave_t.*
-server/settings
 server/*.txt
-service_provider/settings
 .*.swp
 top_snps
 iDASH
