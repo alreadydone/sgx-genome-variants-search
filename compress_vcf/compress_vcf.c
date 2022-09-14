@@ -3,8 +3,12 @@
 #include <string.h>
 #include <inttypes.h>
 
-#define MAX_BUFFER_SIZE	500000
+#define MAX_BUFFER_SIZE	5000000
 #define	MAX_FNAME		256
+
+/* Buffers for homozygous and heterozygous SNPs */
+static uint32_t buffer_homozygous[MAX_BUFFER_SIZE] = {0};
+static uint32_t buffer_heterozygous[MAX_BUFFER_SIZE] = {0};
 
 void strip_ext(char* fname)
 {
@@ -22,6 +26,7 @@ void strip_ext(char* fname)
 
 int main(int argc, char** argv)
 {
+	fprintf(stderr, "OKinit ");
 	/* Check command line arguments */
 	if(argc < 3)
 	{
@@ -95,10 +100,7 @@ int main(int argc, char** argv)
 	 * heterozygous.
 	 */
 	uint32_t line_start_heterozygous = 0;
-
-	/* Buffers for homozygous and heterozygous SNPs */
-	uint32_t buffer_homozygous[MAX_BUFFER_SIZE] = {0};
-	uint32_t buffer_heterozygous[MAX_BUFFER_SIZE] = {0};
+	
 	uint32_t num_heterozygous = 0;
 
 	/* Read and process file line by line */
@@ -106,11 +108,13 @@ int main(int argc, char** argv)
 	char line[256];
 	while(fgets(line, sizeof(line), infile))
 	{
+		//fprintf(stderr, "\33[2K\033[A\33[2K\033[A\33[2K\033[A\33[2K\r%.*s", 256, line);
 		/* Ignore comment lines */
 		if(line[0] == '#')
 		{
 			continue;
 		}
+		//fprintf(stderr, "OK0 ");
 
 		/* SNP id as a char[]. We will convert these to 32-bit integers to save space */
 		char rs_id[16];
@@ -121,6 +125,8 @@ int main(int argc, char** argv)
 		int col_num = 0;
 		char* token;
 		token = strtok(line, "\t");
+		//fprintf(stderr, "%s", token);
+		//fprintf(stderr, "OK1 ");
 		while(token != NULL)
 		{
 			if(argc > 3)
@@ -134,6 +140,12 @@ int main(int argc, char** argv)
 				if(col_num == 6)
 				{
 					int dropped = 0;
+					if(token[0] == '.')
+					{
+						// probably unnecessary
+						dropped = 1;
+						break;
+					}
 					for(i = 0; i < tok_count; i++)
 					{
 						if(strstr(token, filter_arr[i]) != NULL)
@@ -142,17 +154,23 @@ int main(int argc, char** argv)
 							break;
 						}
 					}
+					/* below: redundant */
 					if(dropped)
 					{
 						break;
 					}
 				}
 			}
-
+			//fprintf(stderr, "OKp%d ", col_num);
+			//fprintf(stderr, "OKn0 ");
+			//fprintf(stderr, "%s", token);
 			if(token[0] == 'r' && token[1] == 's')
 			{
+				//fprintf(stderr, "OKn0 ");
 				strncpy(rs_id, token + 2, sizeof(rs_id));
+				//fprintf(stderr, "OKn1 ");
 				temp = strtoul(rs_id, &dummy, 10);
+				//fprintf(stderr, "OKn2 ");
 				rs_id_int = (uint32_t) temp;
 			}
 			else if(strcmp(token, "homozygous\n") == 0)
@@ -169,8 +187,12 @@ int main(int argc, char** argv)
 			}
 			token = strtok(NULL, "\t");
 			col_num = col_num + 1;
+			//fprintf(stderr, "OKc%d ", col_num);
 		}
 	}
+	fprintf(stderr, "%d ", num_heterozygous);
+
+	fprintf(stderr, "Compressing VCF file %s ...\n", argv[1]);
 
 	/* Open output file for writing in binary mode */
 	FILE* outfile;

@@ -9,7 +9,7 @@ APP_MODE=full
 
 NUM_FILES=1000
 
-VCF_DIR=../test_data/bin/
+VCF_DIR=../test_data/bin
 
 CHUNK_SIZE=500000
 
@@ -106,7 +106,7 @@ IAS_REPORT_SIGNING_CA_FILE=/home/ckockan/sgx-genome-variants-search/keys/Attesta
 #======================================================================
 
 # Set to non-zero for verbose output
-VERBOSE=0
+VERBOSE=1
 
 # Set to non-zero for debugging output
-DEBUG=0
+DEBUG=1
