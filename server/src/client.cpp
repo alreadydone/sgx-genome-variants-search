@@ -1136,7 +1136,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 	for(i = 0; i < num_files; i++)
 	{
 		// TODO: This flag does not seem to work
-		//fprintf(stderr, "First pass, processing file: %lu ...\n", i);
+		fprintf(stderr, "First pass, processing file: %lu ...\n", i);
 		if(debug_flag)
 		{
 			fprintf(stderr, "First pass, processing file: %lu ...\n", i);
@@ -1147,6 +1147,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 		size_t len_num_elems;
 		msgio->read_bin((void**) &num_elems_buf, &len_num_elems);
 		uint32_t num_elems = ((uint32_t*) num_elems_buf)[0];
+		fprintf(stderr, "OK0\n");
 
 		// Now, receive and process next data chunk until all data is processed
 		uint32_t num_elems_rem = num_elems;
@@ -1162,22 +1163,27 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 			{
 				to_read_elems = csz;
 			}
-		
+			fprintf(stderr, "OK1\n");
+
 			// Receive data (encrypted)
 			uint8_t* ciphertext;
 			size_t ciphertext_len;
 			msgio->read_bin((void**) &ciphertext, &ciphertext_len);
+			fprintf(stderr, "%d %d %d %d OK2\n", num_elems_rcvd, num_elems_rem, to_read_elems, num_elems);
 
 			// Make an ECALL to decrypt the data and process it inside the Enclave
 			enclave_decrypt_update_mcsk(eid, ra_ctx, ciphertext, ciphertext_len);
 			num_elems_rcvd = num_elems_rcvd +  to_read_elems;
 			num_elems_rem = num_elems_rem - to_read_elems;
+			fprintf(stderr, "OK3\n");
 
 			// We've processed the secret data, now either clean it up or use data sealing for a second pass later
 			delete[] ciphertext;
 		}
+		fprintf(stderr, "%lu\n", i);
 	}
-	
+	fprintf(stderr, "OK0\n");
+
 	// Reset file_idx
 	enclave_reset_file_idx(eid);
 
