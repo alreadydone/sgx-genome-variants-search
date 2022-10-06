@@ -43,6 +43,8 @@ int MCSK_WIDTH = 0;
 int MCSK_DEPTH = 0;
 int MCSK_NUM_PC = 0;
 //int test = 0;
+#define BUFSIZ 8192
+char string_buf[BUFSIZ] = {'\0'};
 
 void enclave_reset_file_idx()
 {
@@ -67,16 +69,20 @@ void enclave_decrypt_update_mcsk(sgx_ra_context_t ctx, uint8_t* ciphertext, size
 {
 	// Buffer to hold the secret key
 	uint8_t sk[16];
+	//printf("OKsk\n");
 
 	// Buffer to hold the decrypted plaintext
 	// Plaintext length can't be longer than the ciphertext length
 	uint8_t* plaintext = new uint8_t[ciphertext_len];
+	//printf("OKplaintext\n");
 
 	// Internal Enclave function to fetch the secret key
 	enclave_getkey(sk);
+	//printf("OKgetkey\n");
 
 	// Decrypt the ciphertext, place it inside the plaintext buffer and return the length of the plaintext
 	size_t plaintext_len = enclave_decrypt(ciphertext, ciphertext_len, sk, plaintext);
+	//printf("OKdecrypt\n");
 
 	// Since each ID in our dataset is a 4-byte unsigned integer, we can get the number of elements
 	uint32_t num_elems = plaintext_len / 4;
@@ -91,6 +97,7 @@ void enclave_decrypt_update_mcsk(sgx_ra_context_t ctx, uint8_t* ciphertext, size
 	{
 		phenotypes[file_idx] = 1.0;
 	}
+	//printf("OKfile_idx\n");
 
 	// Update the MCSK for every element
 	size_t i;
@@ -100,18 +107,22 @@ void enclave_decrypt_update_mcsk(sgx_ra_context_t ctx, uint8_t* ciphertext, size
 		rs_id_uint = (uint64_t) ((uint32_t*) plaintext) [i];
 		mcsk_update_var(rs_id_uint, file_idx, 2.0);
 	}
+	//printf("OKrs_id1\n");
 
 	for(i = num_het_start + 2; i < num_elems; i++)
 	{
 		rs_id_uint = (uint64_t) ((uint32_t*) plaintext) [i];
 		mcsk_update_var(rs_id_uint, file_idx, 1.0);
 	}
+	//printf("OKrs_id2\n");
 
 	// We've processed the data, now clear it
 	delete[] plaintext;
+	//printf("OK delete plaintext\n");
 
 	// Increment column number
-	file_idx = file_idx + 1;
+	//file_idx = file_idx + 1;
+	//printf("file_idx: %d\n", file_idx);
 }
 
 void enclave_mcsk_mean_centering()

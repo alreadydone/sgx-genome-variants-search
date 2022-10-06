@@ -1173,13 +1173,15 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 
 			// Make an ECALL to decrypt the data and process it inside the Enclave
 			enclave_decrypt_update_mcsk(eid, ra_ctx, ciphertext, ciphertext_len);
-			num_elems_rcvd = num_elems_rcvd +  to_read_elems;
+                        fprintf(stderr, "OK2.5\n");
+			num_elems_rcvd = num_elems_rcvd + to_read_elems;
 			num_elems_rem = num_elems_rem - to_read_elems;
 			fprintf(stderr, "OK3\n");
 
 			// We've processed the secret data, now either clean it up or use data sealing for a second pass later
 			delete[] ciphertext;
 		}
+		eid = eid + 1;
 		fprintf(stderr, "%lu\n", i);
 	}
 	fprintf(stderr, "OK0\n");
