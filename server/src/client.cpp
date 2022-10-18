@@ -1120,6 +1120,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 
 	// Set app specific variables
 	uint32_t num_files = nf;
+	fprintf(stderr, "%d\n", num_files);
         uint32_t num_case_files = nf_case;
         uint32_t num_control_files = nf - nf_case;
         uint32_t case_count = (num_case_files << 1);
@@ -1181,7 +1182,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 			// We've processed the secret data, now either clean it up or use data sealing for a second pass later
 			delete[] ciphertext;
 		}
-		eid = eid + 1;
+		//eid = eid + 1;
 		fprintf(stderr, "%lu\n", i);
 	}
 	fprintf(stderr, "OK0\n");
