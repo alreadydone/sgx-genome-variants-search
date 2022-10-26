@@ -30,11 +30,18 @@ int printf(const char* fmt, ...)
     va_start(ap, fmt);
     vsnprintf(buf, BUFSIZ, fmt, ap);
     va_end(ap);
-//    ocall_print_string(buf);
+    ocall_print_string(buf);
     return (int)strnlen(buf, BUFSIZ - 1) + 1;
 }
 
 /* OCall functions */
+void ocall_print_string(const char *str)
+{
+    /* Proxy/Bridge will check the length and null-terminate 
+     * the input string to prevent buffer overflow. 
+     */
+    printf("%s", str);
+}
 
 #define ALLELE_HETEROZYGOUS	1
 #define	ALLELE_HOMOZYGOUS	2
