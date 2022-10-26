@@ -1316,6 +1316,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 
 		// Last Pass: Use rhht and mh for pcc
 		fprintf(stderr, "Last pass, C-A Trend Test ...\n");
+		fprintf(stderr, "First\n");
 		enclave_init_rhht_pcc(eid, l);
 	}
 	else
@@ -1367,6 +1368,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 
 		// Last Pass: Use rhht and mh for pcc
 		fprintf(stderr, "Last pass, C-A Trend Test ...\n");
+		fprintf(stderr, "Second\n");
 	}
 
 	for(i = 0; i < num_files; i++)
@@ -1433,6 +1435,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 	// Stop timer and report time for the last pass over the data
 	duration = (std::clock() - start) / (double) CLOCKS_PER_SEC;
 	fprintf(stderr, "Last Pass (C-A Trend Test) took: %lf seconds\n", duration);
+	fprintf(stderr, "Third\n");
 	free(chi_sq_pairs);
 	enclave_free_id_buf(eid);
 	enclave_free_res_buf(eid);
