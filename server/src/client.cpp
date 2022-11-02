@@ -1318,6 +1318,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 		fprintf(stderr, "Last pass, C-A Trend Test ...\n");
 		fprintf(stderr, "First\n");
 		enclave_init_rhht_pcc(eid, l);
+		fprintf(stderr, "First done\n");
 	}
 	else
 	{
@@ -1381,7 +1382,9 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 		// First, receive the total number of elements to be received
 		uint8_t* num_elems_buf;
 		size_t len_num_elems;
+		fprintf(stderr, "before read_bin\n");
 		msgio->read_bin((void**) &num_elems_buf, &len_num_elems);
+		fprintf(stderr, "done read_bin\n");
 		uint32_t num_elems = ((uint32_t*) num_elems_buf)[0];
 
 		// Now, receive and process next data chunk until all data is processed
@@ -1402,29 +1405,42 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 			// Receive data (encrypted)
 			uint8_t* ciphertext;
 			size_t ciphertext_len;
-			msgio->read_bin((void**) &ciphertext, &ciphertext_len);
 
+			if (i == 1999) { fprintf(stderr, "before read_bin_loop\n"); }
+			msgio->read_bin((void**) &ciphertext, &ciphertext_len);
+			if (i == 1999) { fprintf(stderr, "done read_bin_loop\n"); }
+			
 			// Make an ECALL to decrypt the data and process it inside the Enclave
 			enclave_decrypt_process_rhht_pcc(eid, ra_ctx, ciphertext, ciphertext_len);
+			if (i == 1999) { fprintf(stderr, "decrypt done: %d %d %d %d \n", num_elems_rcvd, num_elems_rem, to_read_elems, num_elems); }
 			num_elems_rcvd = num_elems_rcvd +  to_read_elems;
 			num_elems_rem = num_elems_rem - to_read_elems;
 
 			// We've processed the secret data, now either clean it up or use data sealing for a second pass later
 			delete[] ciphertext;
 		}
+		fprintf(stderr, "%d\/%d\n", i, num_files);
 	}
 	
+	fprintf(stderr, "all files done\n");
 	// Make an ECALL to perform the chi-squared test
 	enclave_init_id_buf(eid, k);
+	fprintf(stderr, "enclave_init_id\n");
 	enclave_init_res_buf(eid, k);
+	fprintf(stderr, "enclave_init_res\n");
 	rhht_init_cat_chi_sq(eid, num_files, k);
+	fprintf(stderr, "rhht\n");
 
 	// Make an ECALL to receive the result
 	res_pair *chi_sq_pairs;
 	chi_sq_pairs = (res_pair*) malloc(k * sizeof(res_pair));
+	fprintf(stderr, "malloc chi_sq_pairs\n");
 	enclave_get_res_pairs(eid, chi_sq_pairs, k);
+	fprintf(stderr, "enclave_res_pairs\n");
 	qsort(chi_sq_pairs, k, sizeof(res_pair), cmpfunc_pair);
+	fprintf(stderr, "qsort\n");
 	FILE* file = fopen(ofn, "w");
+	fprintf(stderr, "file open\n");
 	fprintf(file, "SNP_ID\tCHI_SQ_VAL\n");
 	for(int i = 0; i < k; i++)
 	{
