@@ -1182,7 +1182,6 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 			// We've processed the secret data, now either clean it up or use data sealing for a second pass later
 			delete[] ciphertext;
 		}
-		//eid = eid + 1;
 		fprintf(stderr, "%lu\n", i);
 	}
 	fprintf(stderr, "OK0\n");
