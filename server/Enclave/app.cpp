@@ -30,7 +30,7 @@ int printf(const char* fmt, ...)
     va_start(ap, fmt);
     vsnprintf(buf, BUFSIZ, fmt, ap);
     va_end(ap);
-    ocall_print_string(buf);
+    //ocall_print_string(buf);
     return (int)strnlen(buf, BUFSIZ - 1) + 1;
 }
 
@@ -769,11 +769,14 @@ void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext,
 		if(index != -1)
 		{
 			rhht_snp_table_pcc->buffer[index].ssqg += 4;
-			rhht_snp_table_pcc->buffer[index].dotprod += (phenotypes[file_idx] * 2);
-			rhht_snp_table_pcc->buffer[index].sx += (2 * (1.0 - u[file_idx]));
+			//rhht_snp_table_pcc->buffer[index].dotprod += (phenotypes[file_idx] * 2);
+			rhht_snp_table_pcc->buffer[index].dotprod += 1;
+			//rhht_snp_table_pcc->buffer[index].sx += (2 * (1.0 - u[file_idx]));
+			rhht_snp_table_pcc->buffer[index].sx += 1;
 			for(int pc = 0; pc < MCSK_NUM_PC; pc++)
 			{
-				rhht_snp_table_pcc->buffer[index].pc_projections[pc] += (enclave_eig[pc][file_idx] * 2);
+				//rhht_snp_table_pcc->buffer[index].pc_projections[pc] += (enclave_eig[pc][file_idx] * 2);
+				rhht_snp_table_pcc->buffer[index].pc_projections[pc] += 1;
 			}
 		}
 	}
@@ -788,11 +791,15 @@ void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext,
 		if(index != -1)
 		{
 			rhht_snp_table_pcc->buffer[index].ssqg += 1;
-			rhht_snp_table_pcc->buffer[index].dotprod += phenotypes[file_idx];
-			rhht_snp_table_pcc->buffer[index].sx += (1.0 - u[file_idx]);
+			//rhht_snp_table_pcc->buffer[index].dotprod += phenotypes[file_idx];
+	                rhht_snp_table_pcc->buffer[index].dotprod += 1;
+			//rhht_snp_table_pcc->buffer[index].sx += (1.0 - u[file_idx]);
+                        rhht_snp_table_pcc->buffer[index].sx += 1;
+
 			for(int pc = 0; pc < MCSK_NUM_PC; pc++)
 			{
-				rhht_snp_table_pcc->buffer[index].pc_projections[pc] += enclave_eig[pc][file_idx];
+				//rhht_snp_table_pcc->buffer[index].pc_projections[pc] += enclave_eig[pc][file_idx];
+				rhht_snp_table_pcc->buffer[index].pc_projections[pc] += 1;
 			}
 		}
 	}
