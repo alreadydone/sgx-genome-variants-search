@@ -1370,6 +1370,8 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 		fprintf(stderr, "Last pass, C-A Trend Test ...\n");
 		fprintf(stderr, "Second\n");
 	}
+	
+	uint16_t file_idx;
 
 	for(i = 0; i < num_files; i++)
 	{
@@ -1410,7 +1412,8 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 			if (i == 1999) { fprintf(stderr, "done read_bin_loop\n"); }
 			
 			// Make an ECALL to decrypt the data and process it inside the Enclave
-			enclave_decrypt_process_rhht_pcc(eid, ra_ctx, ciphertext, ciphertext_len);
+			enclave_decrypt_process_rhht_pcc(eid, ra_ctx, ciphertext, ciphertext_len, &file_idx);
+			fprintf(stderr, "%u\n", (unsigned int)file_idx);
 			if (i == 1999) { fprintf(stderr, "decrypt done: %d %d %d %d \n", num_elems_rcvd, num_elems_rem, to_read_elems, num_elems); }
 			num_elems_rcvd = num_elems_rcvd +  to_read_elems;
 			num_elems_rem = num_elems_rem - to_read_elems;
