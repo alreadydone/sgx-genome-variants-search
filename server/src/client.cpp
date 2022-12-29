@@ -1188,6 +1188,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 
 	// Reset file_idx
 	enclave_reset_file_idx(eid);
+	fprintf(stderr, "reset\n");
 
 	// Stop timer and report time for the first pass over the data
 	duration = (std::clock() - start) / (double) CLOCKS_PER_SEC;
@@ -1198,9 +1199,11 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 
 	// Perform mean centering before SVD
 	enclave_mcsk_mean_centering(eid);
+	fprintf(stderr, "mean_centering\n");
 
 	// SVD
 	enclave_svd(eid);
+	fprintf(stderr, "SVD done\n");
 
 	// Stop timer and report time for the first pass over the data
 	duration = (std::clock() - start) / (double) CLOCKS_PER_SEC;
