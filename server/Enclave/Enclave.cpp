@@ -130,7 +130,6 @@ sgx_status_t enclave_ra_close(sgx_ra_context_t ctx)
 /*
  * printf:
  *   Invokes OCALL to display the enclave buffer to the terminal.
- */
 int printf(const char* fmt, ...)
 {
     char buf[BUFSIZ] = { '\0' };
@@ -140,4 +139,4 @@ int printf(const char* fmt, ...)
     va_end(ap);
     ocall_print_string(buf);
     return (int)strnlen(buf, BUFSIZ - 1) + 1;
-}
+}*/

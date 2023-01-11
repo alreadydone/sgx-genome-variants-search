@@ -18,6 +18,7 @@
 #include "util.h"
 #include <stdio.h> /* vsnprintf */
 #include <string.h>
+#include <stdarg.h>
 
 #define ALLELE_HETEROZYGOUS	1
 #define	ALLELE_HOMOZYGOUS	2
@@ -45,8 +46,23 @@ int MCSK_WIDTH = 0;
 int MCSK_DEPTH = 0;
 int MCSK_NUM_PC = 0;
 //int test = 0;
-#define BUFSIZ 8192
-char string_buf[BUFSIZ] = {'\0'};
+//#define BUFSIZ 8192
+//char string_buf[BUFSIZ] = {'\0'};
+
+/*
+ * printf:
+ *   Invokes OCALL to display the enclave buffer to the terminal.
+ */
+int printf(const char* fmt, ...)
+{
+    char buf[BUFSIZ] = { '\0' };
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, BUFSIZ, fmt, ap);
+    va_end(ap);
+    ocall_print_string(buf);
+    return (int)strnlen(buf, BUFSIZ - 1) + 1;
+}
 
 void enclave_reset_file_idx()
 {
@@ -71,20 +87,22 @@ void enclave_decrypt_update_mcsk(sgx_ra_context_t ctx, uint8_t* ciphertext, size
 {
 	// Buffer to hold the secret key
 	uint8_t sk[16];
-	//printf("OKsk\n");
-
+	printf("OKsk\n");
+        //printf("ciphertext_len: %zu\n", ciphertext_len);
+	//ciphertext_len = 68435283 ;
+	printf("ciphertext_len: %zu\n", ciphertext_len);
 	// Buffer to hold the decrypted plaintext
 	// Plaintext length can't be longer than the ciphertext length
 	uint8_t* plaintext = new uint8_t[ciphertext_len];
-	//printf("OKplaintext\n");
+	printf("OKplaintext\n");
 
 	// Internal Enclave function to fetch the secret key
 	enclave_getkey(sk);
-	//printf("OKgetkey\n");
+	printf("OKgetkey\n");
 
 	// Decrypt the ciphertext, place it inside the plaintext buffer and return the length of the plaintext
 	size_t plaintext_len = enclave_decrypt(ciphertext, ciphertext_len, sk, plaintext);
-	//printf("OKdecrypt\n");
+	printf("OKdecrypt\n");
 
 	// Since each ID in our dataset is a 4-byte unsigned integer, we can get the number of elements
 	uint32_t num_elems = plaintext_len / 4;
@@ -99,7 +117,7 @@ void enclave_decrypt_update_mcsk(sgx_ra_context_t ctx, uint8_t* ciphertext, size
 	{
 		phenotypes[file_idx] = 1.0;
 	}
-	//printf("OKfile_idx\n");
+	printf("OKfile_idx\n");
 
 	// Update the MCSK for every element
 	size_t i;
@@ -109,22 +127,22 @@ void enclave_decrypt_update_mcsk(sgx_ra_context_t ctx, uint8_t* ciphertext, size
 		rs_id_uint = (uint64_t) ((uint32_t*) plaintext) [i];
 		mcsk_update_var(rs_id_uint, file_idx, 2.0);
 	}
-	//printf("OKrs_id1\n");
+	printf("OKrs_id1\n");
 
 	for(i = num_het_start + 2; i < num_elems; i++)
 	{
 		rs_id_uint = (uint64_t) ((uint32_t*) plaintext) [i];
 		mcsk_update_var(rs_id_uint, file_idx, 1.0);
 	}
-	//printf("OKrs_id2\n");
+	printf("OKrs_id2\n");
 
 	// We've processed the data, now clear it
 	delete[] plaintext;
-	//printf("OK delete plaintext\n");
+	printf("OK delete plaintext\n");
 
 	// Increment column number
 	file_idx = file_idx + 1;
-	//printf("file_idx: %d\n", file_idx);
+	printf("file_idx: %d\n", file_idx);
 }
 
 void enclave_mcsk_mean_centering()
@@ -134,97 +152,136 @@ void enclave_mcsk_mean_centering()
 
 void enclave_svd()
 {
+	printf("MCSK_WIDTH: %d\n", (int)m_mcsk->m);
 	MCSK_WIDTH = m_mcsk->m;
+	printf("MCSK_DEPTH: %d\n", (int)m_mcsk->depth);
 	MCSK_DEPTH = m_mcsk->depth;
+	printf("MCSK_NUM_PC: %d\n", (int)m_mcsk->k);
 	MCSK_NUM_PC = m_mcsk->k;
+	printf("before getmsk\n");
 	float** A = getmsk();
+	printf("before malloc WIDTH\n");
 	u = (float*) malloc(MCSK_WIDTH * sizeof(float));
 
 	if (MCSK_WIDTH < MCSK_DEPTH) 
 	{
+		printf("before 1st malloc in loop\n");
 		float* S = (float*) malloc(MCSK_WIDTH * sizeof(float));
+		printf("before 2nd malloc in loop\n");
 		float** Q = (float**) malloc(MCSK_WIDTH * sizeof(float*));
 		for(size_t i = 0; i < MCSK_WIDTH; i++)
 		{
+			printf("before malloc in double loop\n");
 			Q[i] = (float*) malloc(MCSK_WIDTH * sizeof(float));
 		}
 
 		// Compute SVD A = USV^T; V stored in Q
+		printf("before svdcomp_t\n");
 		int retval = svdcomp_t(A, MCSK_DEPTH, MCSK_WIDTH, S, Q);
 
 		// Copy k rows of Q to A.
 		for (int i = 0; i < MCSK_NUM_PC; i++)
 		{
+			printf("before memcpy\n");
 			memcpy(A[i], Q[i], MCSK_WIDTH * sizeof(float));
 		}
 		
 		// Compute VV^T * phenotype vector and VV^T * all one vector
+		printf("before memset\n");
 		memset(A[MCSK_NUM_PC], 0, MCSK_WIDTH * sizeof(float));
+		printf("before ortho_proj\n");
 		matrix_ortho_proj(A, phenotypes, A[MCSK_NUM_PC], MCSK_NUM_PC, MCSK_WIDTH);
 		for(size_t i = 0; i < MCSK_WIDTH; i++)
 		{
 			// Should be replaced by daxpy
+			printf("before compute\n");
 			A[MCSK_NUM_PC][i] = phenotypes[i] - A[MCSK_NUM_PC][i];
 			u[i] = 1.0;
 		}
+		printf("before 2nd memcpy\n");
 		memcpy(phenotypes, A[MCSK_NUM_PC], MCSK_WIDTH * sizeof(float));
+		printf("before 2nd memset\n");
 		memset(A[MCSK_NUM_PC + 1], 0, MCSK_WIDTH * sizeof(float));
+		printf("before 2nd ortho_proj\n");
 		matrix_ortho_proj(A, u, A[MCSK_NUM_PC + 1], MCSK_NUM_PC, MCSK_WIDTH);
+		printf("before 3rd memcpy\n");
 		memcpy(u, A[MCSK_NUM_PC + 1], MCSK_WIDTH * sizeof(float));
 		
 		// Free allocated memories
 		for (int i = 0; i < MCSK_WIDTH; i++)
 		{
+			printf("before free Qi\n");
 			free(Q[i]);
 		}
+		printf("before free Q\n");
 		free(Q);
+		printf("before free S\n");
 		free(S);
 	}
 	else 
 	{
+		printf("pre else S malloc\n");
 		float* S = (float*) malloc(MCSK_DEPTH * sizeof(float));
+		printf("pre else Q malloc\n");
 		float** Q = (float**) malloc(MCSK_DEPTH * sizeof(float*));
 		for(size_t i = 0; i < MCSK_DEPTH; i++)
 		{
+			printf("pre else Qi malloc\n");
 			Q[i] = (float*) malloc(MCSK_DEPTH * sizeof(float));
 		}
 
 		// Compute SVD A = USV^T; V stored in Q
+		printf("pre svdcomp_a\n");
 		int retval = svdcomp_a(A, MCSK_WIDTH, MCSK_DEPTH, S, Q);
 
 		// Compute VV^T * phenotype vector and VV^T * all one vector
+		printf("pre memset\n");
 		memset(A[MCSK_NUM_PC], 0, MCSK_WIDTH * sizeof(float));
+		printf("pre ortho_proj\n");
 		matrix_ortho_proj(A, phenotypes, A[MCSK_NUM_PC], MCSK_NUM_PC, MCSK_WIDTH);
 		for(size_t i = 0; i < MCSK_WIDTH; i++)
 		{
 			// Should be replaced by daxpy
+			printf("pre compute\n");
 			A[MCSK_NUM_PC][i] = phenotypes[i] - A[MCSK_NUM_PC][i];
 			u[i] = 1.0;
 		}
+		printf("pre memcpy\n");
 		memcpy(phenotypes, A[MCSK_NUM_PC], MCSK_WIDTH * sizeof(float));
+		printf("pre 2nd memset\n");
 		memset(A[MCSK_NUM_PC + 1], 0, MCSK_WIDTH * sizeof(float));
+		printf("pre 2nd ortho_proj\n");
 		matrix_ortho_proj(A, u, A[MCSK_NUM_PC + 1], MCSK_NUM_PC, MCSK_WIDTH);
+		printf("pre 3rd memcpy\n");
 		memcpy(u, A[MCSK_NUM_PC + 1], MCSK_WIDTH * sizeof(float));
 
 		// Free allocated memories
 		for (int i = 0; i < MCSK_DEPTH; i++)
 		{
+			printf("pre free Qi\n");
 			free(Q[i]);
 		}
+		printf("pre free Q\n");
 		free(Q);
+		printf("pre free S\n");
 		free(S);
 	}
 
 	// Keep only the first k rows of V, now stroed in the first k rows of A
+	printf("pre malloc enclave_eig\n");
 	enclave_eig = (float**) malloc(MCSK_NUM_PC * sizeof(float*));
 	for(int pc = 0; pc < MCSK_NUM_PC; pc++)
 	{
+		printf("pre malloc enclave_eig pc in loop\n");
 		enclave_eig[pc] = (float*) malloc(MCSK_WIDTH * sizeof(float));
+		printf("pre memcpy in loop\n");
 		memcpy(enclave_eig[pc], A[pc], MCSK_WIDTH * sizeof(float));
 	}
 
 	// Free the sketch matrix
+	printf("pre mcsk_free\n");
 	mcsk_free();
+	printf("pre free m_mcsk\n");
 	free(m_mcsk);
 }
 
