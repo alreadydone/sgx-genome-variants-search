@@ -88,8 +88,8 @@ void enclave_decrypt_update_mcsk(sgx_ra_context_t ctx, uint8_t* ciphertext, size
 	// Buffer to hold the secret key
 	uint8_t sk[16];
 	printf("OKsk\n");
-        //printf("ciphertext_len: %zu\n", ciphertext_len);
-	//ciphertext_len = 68435283 ;
+        printf("ciphertext_len: %zu\n", ciphertext_len);
+	ciphertext_len = 68435921     ;
 	printf("ciphertext_len: %zu\n", ciphertext_len);
 	// Buffer to hold the decrypted plaintext
 	// Plaintext length can't be longer than the ciphertext length

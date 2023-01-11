@@ -7,13 +7,13 @@ PORT_NUMBER=7777
 #One of "basic", "sketch", "sketch_topk", "preprocess", "full"
 APP_MODE=full
 
-NUM_FILES=5296
+NUM_FILES=4004
 
-VCF_DIR=../UKB/bin
+VCF_DIR=../UKB/bin_complete
 
 CHUNK_SIZE=5000000
 
-SNP_IDS=../UKB/unique_snps.bin
+SNP_IDS=../UKB/unique_snps_complete.bin
 
 #======================================================================
 # Global options
