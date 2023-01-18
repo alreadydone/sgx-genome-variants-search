@@ -89,8 +89,8 @@ void enclave_decrypt_update_mcsk(sgx_ra_context_t ctx, uint8_t* ciphertext, size
 	uint8_t sk[16];
 	printf("OKsk\n");
         printf("ciphertext_len: %zu\n", ciphertext_len);
-	ciphertext_len = 68435921     ;
-	printf("ciphertext_len: %zu\n", ciphertext_len);
+	//ciphertext_len = 68435921     ;
+	//printf("ciphertext_len: %zu\n", ciphertext_len);
 	// Buffer to hold the decrypted plaintext
 	// Plaintext length can't be longer than the ciphertext length
 	uint8_t* plaintext = new uint8_t[ciphertext_len];
@@ -242,7 +242,7 @@ void enclave_svd()
 		for(size_t i = 0; i < MCSK_WIDTH; i++)
 		{
 			// Should be replaced by daxpy
-			printf("pre compute\n");
+			//printf("pre compute\n");
 			A[MCSK_NUM_PC][i] = phenotypes[i] - A[MCSK_NUM_PC][i];
 			u[i] = 1.0;
 		}
@@ -258,7 +258,7 @@ void enclave_svd()
 		// Free allocated memories
 		for (int i = 0; i < MCSK_DEPTH; i++)
 		{
-			printf("pre free Qi\n");
+			//printf("pre free Qi\n");
 			free(Q[i]);
 		}
 		printf("pre free Q\n");

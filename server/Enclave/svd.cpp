@@ -1,7 +1,27 @@
 #include "stdlib.h"
 #include "math.h"
+#include "config.h"
+#include "Enclave_t.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
 
 #define SIGN(a, b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
+
+/*
+ * printf:
+ *   Invokes OCALL to display the enclave buffer to the terminal.
+ */
+int printf1(const char* fmt, ...)
+{
+    char buf[BUFSIZ] = { '\0' };
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, BUFSIZ, fmt, ap);
+    va_end(ap);
+    ocall_print_string(buf);
+    return (int)strnlen(buf, BUFSIZ - 1) + 1;
+}
 
 static float maxarg1, maxarg2;
 #define FMAX(a, b) (maxarg1 = (a), maxarg2 = (b), (maxarg1) > (maxarg2) ? \
@@ -496,23 +516,40 @@ int svdcomp_a(float **a, int m, int n, float *w, float **v) {
 		//fprintf(stderr, "#rows must be > #cols \n");
 		return (0);
 	}
-
+	printf1("before malloc: n = %d\n", n);
+	n = 1188;
 	rv1 = (double *) malloc((unsigned int) n * sizeof(double));
+	printf1("n = %d\n", n);
+	printf1("after malloc\n");
+	x = rv1[0];
+	printf1("assigned\n");
+	printf1("x = %f\n", x);
 
 	/* Householder reduction to bidiagonal form */
 	for (i = 0; i < n; i++) {
 		/* left-hand reduction */
 		l = i + 1;
+		printf1("before mul scale\n");
+		printf1("i = %d\n", i);
+		printf1("scale = %f\n", scale);
+		printf1("g = %f\n", g);
+		printf1("rv1[i] = %f\n", rv1[i]);
 		rv1[i] = scale * g;
+		printf1("mul scale done\n");
 		g = s = scale = 0.0;
 		if (i < m) {
-			for (k = i; k < m; k++)
+			printf1("i = %d, m = %d\n", i, m);
+			for (k = i; k < m; k++) {
 				scale += fabs((double) a[i][k]);
+				//printf1("k = %d\n", k);
+			};
+			printf1("1st for loop done\n");
 			if (scale) {
 				for (k = i; k < m; k++) {
 					a[i][k] = (float) ((double) a[i][k] / scale);
 					s += ((double) a[i][k] * (double) a[i][k]);
 				}
+				printf1("2nd for loop done\n");
 				f = (double) a[i][i];
 				g = -SIGN(sqrt(s), f);
 				h = f * g - s;
@@ -525,11 +562,13 @@ int svdcomp_a(float **a, int m, int n, float *w, float **v) {
 						for (k = i; k < m; k++)
 							a[j][k] += (float) (f * (double) a[i][k]);
 					}
+					printf1("3rd for loop done\n");
 				}
 				for (k = i; k < m; k++)
 					a[i][k] = (float) ((double) a[i][k] * scale);
 			}
 		}
+		printf1("Householder left hand done\n");
 		w[i] = (float) (scale * g);
 
 		/* right-hand reduction */
@@ -537,17 +576,20 @@ int svdcomp_a(float **a, int m, int n, float *w, float **v) {
 		if (i < m && i != n - 1) {
 			for (k = l; k < n; k++)
 				scale += fabs((double) a[k][i]);
+			printf1("1st for loop done\n");
 			if (scale) {
 				for (k = l; k < n; k++) {
 					a[k][i] = (float) ((double) a[k][i] / scale);
 					s += ((double) a[k][i] * (double) a[k][i]);
 				}
+				printf1("2nd for loop done\n");
 				f = (double) a[l][i];
 				g = -SIGN(sqrt(s), f);
 				h = f * g - s;
 				a[l][i] = (float) (f - g);
 				for (k = l; k < n; k++)
 					rv1[k] = (double) a[k][i] / h;
+				printf1("3rd for loop done\n");
 				if (i != m - 1) {
 					for (j = l; j < m; j++) {
 						for (s = 0.0, k = l; k < n; k++)
@@ -555,13 +597,16 @@ int svdcomp_a(float **a, int m, int n, float *w, float **v) {
 						for (k = l; k < n; k++)
 							a[k][j] += (float) (s * rv1[k]);
 					}
+					printf1("4th for loop done\n");
 				}
 				for (k = l; k < n; k++)
 					a[k][i] = (float) ((double) a[k][i] * scale);
 			}
 		}
+		printf1("Householder right hand done\n");
 		anorm = FMAX(anorm, (fabs((double) w[i]) + fabs(rv1[i])));
 	}
+	printf1("Householder done\n");
 
 	/* accumulate the right-hand transformation */
 	for (i = n - 1; i >= 0; i--) {
@@ -585,6 +630,7 @@ int svdcomp_a(float **a, int m, int n, float *w, float **v) {
 		g = rv1[i];
 		l = i;
 	}
+	printf1("right hand done\n");
 
 	/* accumulate the left-hand transformation */
 	for (i = n - 1; i >= 0; i--) {
@@ -612,6 +658,7 @@ int svdcomp_a(float **a, int m, int n, float *w, float **v) {
 		}
 		++a[i][i];
 	}
+	printf1("left hand done\n");
 
 	/* diagonalize the bidiagonal form */
 	for (k = n - 1; k >= 0; k--) { /* loop over singular values */
@@ -715,6 +762,8 @@ int svdcomp_a(float **a, int m, int n, float *w, float **v) {
 			w[k] = (float) x;
 		}
 	}
+	printf1("diagonalize done\n");
 	free((void*) rv1);
+	printf1("freed\n");
 	return (1);
 }
