@@ -517,13 +517,13 @@ int svdcomp_a(float **a, int m, int n, float *w, float **v) {
 		return (0);
 	}
 	printf1("before malloc: n = %d\n", n);
-	n = 1188;
+	//n = 1188;
 	rv1 = (double *) malloc((unsigned int) n * sizeof(double));
-	printf1("n = %d\n", n);
+	//printf1("n = %d\n", n);
 	printf1("after malloc\n");
-	x = rv1[0];
-	printf1("assigned\n");
-	printf1("x = %f\n", x);
+	//x = rv1[0];
+	//printf1("assigned\n");
+	//printf1("x = %f\n", x);
 
 	/* Householder reduction to bidiagonal form */
 	for (i = 0; i < n; i++) {

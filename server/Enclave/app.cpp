@@ -226,7 +226,7 @@ void enclave_svd()
 		float** Q = (float**) malloc(MCSK_DEPTH * sizeof(float*));
 		for(size_t i = 0; i < MCSK_DEPTH; i++)
 		{
-			printf("pre else Qi malloc\n");
+			//printf("pre else Qi malloc\n");
 			Q[i] = (float*) malloc(MCSK_DEPTH * sizeof(float));
 		}
 
@@ -272,9 +272,9 @@ void enclave_svd()
 	enclave_eig = (float**) malloc(MCSK_NUM_PC * sizeof(float*));
 	for(int pc = 0; pc < MCSK_NUM_PC; pc++)
 	{
-		printf("pre malloc enclave_eig pc in loop\n");
+		//printf("pre malloc enclave_eig pc in loop\n");
 		enclave_eig[pc] = (float*) malloc(MCSK_WIDTH * sizeof(float));
-		printf("pre memcpy in loop\n");
+		//printf("pre memcpy in loop\n");
 		memcpy(enclave_eig[pc], A[pc], MCSK_WIDTH * sizeof(float));
 	}
 
@@ -771,6 +771,9 @@ void enclave_init_rhht_pcc(int MH_INIT_CAPACITY)
 
 void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext, size_t ciphertext_len, uint16_t* file_idx_addr)
 {
+	printf("%u\n", file_idx);
+	uint32_t num_files = 7549; // actually one less than the number of files
+
 	// Buffer to hold the secret key
 	uint8_t sk[16];
 
@@ -778,18 +781,21 @@ void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext,
 	// Plaintext length can't be longer than the ciphertext length
 	uint8_t* plaintext = new uint8_t[ciphertext_len];
 
+	printf("before getkey\n");
 	// Internal Enclave function to fetch the secret key
 	enclave_getkey(sk);
+	printf("before decrypt\n");
 
 	// Decrypt the ciphertext, place it inside the plaintext buffer and return the length of the plaintext
 	size_t plaintext_len = enclave_decrypt(ciphertext, ciphertext_len, sk, plaintext);
-
+	printf("after decrypt\n");
 	// Since each ID in our dataset is a 4-byte unsigned integer, we can get the number of elements
 	uint32_t num_elems = plaintext_len / 4;
 
 	// Get the meta-information first
 	uint32_t patient_status = ((uint32_t*) plaintext) [0];
 	uint32_t het_start_idx = ((uint32_t*) plaintext) [1];
+	printf("after get meta-info\n");
 
 	size_t i;
 	for(i = 2; i < het_start_idx + 2; i++)
@@ -797,12 +803,15 @@ void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext,
 		uint32_t elem_id = ((uint32_t*) plaintext) [i];
 
 		int32_t index = find_pcc(elem_id);
+		if (file_idx == num_files) printf("after find_pcc\n");
 
 		// If found, update entry based on allele type
 		if(index != -1)
 		{
 			rhht_snp_table_pcc->buffer[index].ssqg += 4;
+			if (file_idx == num_files) printf("index okay\n");
 			rhht_snp_table_pcc->buffer[index].dotprod += (phenotypes[file_idx] * 2);
+			if (file_idx == num_files) printf("file_idx okay\n");
 			//rhht_snp_table_pcc->buffer[index].dotprod += 1;
 			rhht_snp_table_pcc->buffer[index].sx += (2 * (1.0 - u[file_idx]));
 			//rhht_snp_table_pcc->buffer[index].sx += 1;
@@ -811,6 +820,7 @@ void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext,
 				rhht_snp_table_pcc->buffer[index].pc_projections[pc] += (enclave_eig[pc][file_idx] * 2);
 				//rhht_snp_table_pcc->buffer[index].pc_projections[pc] += 1;
 			}
+			if (file_idx == num_files) printf("pc okay\n");
 		}
 	}
 
@@ -819,12 +829,15 @@ void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext,
 		uint32_t elem_id = ((uint32_t*) plaintext) [i];
 
 		int32_t index = find_pcc(elem_id);
+		if (file_idx == num_files) printf("after find_pcc 2\n");
 
 		// If found, update entry based on allele type
 		if(index != -1)
 		{
 			rhht_snp_table_pcc->buffer[index].ssqg += 1;
+			if (file_idx == num_files) printf("index okay 2\n");
 			rhht_snp_table_pcc->buffer[index].dotprod += phenotypes[file_idx];
+			if (file_idx == num_files) printf("file_idx okay 2\n");
 	                //rhht_snp_table_pcc->buffer[index].dotprod += 1;
 			rhht_snp_table_pcc->buffer[index].sx += (1.0 - u[file_idx]);
                         //rhht_snp_table_pcc->buffer[index].sx += 1;
@@ -834,6 +847,7 @@ void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext,
 				rhht_snp_table_pcc->buffer[index].pc_projections[pc] += enclave_eig[pc][file_idx];
 				//rhht_snp_table_pcc->buffer[index].pc_projections[pc] += 1;
 			}
+			if (file_idx == num_files) printf("pc okay 2\n");
 		}
 	}
 

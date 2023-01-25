@@ -1410,14 +1410,14 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 			uint8_t* ciphertext;
 			size_t ciphertext_len;
 
-			if (i == 1999) { fprintf(stderr, "before read_bin_loop\n"); }
+			if (i == 7549) { fprintf(stderr, "before read_bin_loop\n"); }
 			msgio->read_bin((void**) &ciphertext, &ciphertext_len);
-			if (i == 1999) { fprintf(stderr, "done read_bin_loop\n"); }
+			if (i == 7549) { fprintf(stderr, "done read_bin_loop\n"); }
 			
 			// Make an ECALL to decrypt the data and process it inside the Enclave
 			enclave_decrypt_process_rhht_pcc(eid, ra_ctx, ciphertext, ciphertext_len, &file_idx);
 			fprintf(stderr, "%u\n", (unsigned int)file_idx);
-			if (i == 1999) { fprintf(stderr, "decrypt done: %d %d %d %d \n", num_elems_rcvd, num_elems_rem, to_read_elems, num_elems); }
+			if (i == 7549) { fprintf(stderr, "decrypt done: %d %d %d %d \n", num_elems_rcvd, num_elems_rem, to_read_elems, num_elems); }
 			num_elems_rcvd = num_elems_rcvd +  to_read_elems;
 			num_elems_rem = num_elems_rem - to_read_elems;
 
@@ -1449,7 +1449,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 	fprintf(file, "SNP_ID\tCHI_SQ_VAL\n");
 	for(int i = 0; i < k; i++)
 	{
-		fprintf(file, "%u\t%.4f\n", chi_sq_pairs[i].key, chi_sq_pairs[i].value);
+		fprintf(file, "%u\t%.9f\n", chi_sq_pairs[i].key, chi_sq_pairs[i].value);
 	}
 	fclose(file);
 
