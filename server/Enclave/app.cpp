@@ -83,6 +83,11 @@ void enclave_init_mcsk(int MCSK_WIDTH, int MCSK_NUM_PC, float MCSK_EPS)
 	phenotypes = (float*) malloc(MCSK_WIDTH * sizeof(float));
 }
 
+void enclave_init_uniq(uint32_t UNIQ_CNT, uint32_t* ID)
+{
+	uniq_init(UNIQ_CNT, ID);
+}
+
 void enclave_decrypt_update_mcsk(sgx_ra_context_t ctx, uint8_t* ciphertext, size_t ciphertext_len)
 {
 	// Buffer to hold the secret key
@@ -125,6 +130,7 @@ void enclave_decrypt_update_mcsk(sgx_ra_context_t ctx, uint8_t* ciphertext, size
 	for(i = 2; i < num_het_start + 2; i++)
 	{
 		rs_id_uint = (uint64_t) ((uint32_t*) plaintext) [i];
+		//printf("%llu\n", rs_id_uint);
 		mcsk_update_var(rs_id_uint, file_idx, 2.0);
 	}
 	printf("OKrs_id1\n");
@@ -1037,6 +1043,7 @@ void enclave_decrypt_update_cms(sgx_ra_context_t ctx, uint8_t* ciphertext, size_
 	for(i = 2; i < num_het_start + 2; i++)
 	{
 		rs_id_uint = (uint64_t) ((uint32_t*) plaintext) [i];
+		//printf("%llu\n", rs_id_uint);
 		cms_update_var(rs_id_uint, ALLELE_HOMOZYGOUS * sign);
 	}
 
@@ -1126,6 +1133,7 @@ void enclave_decrypt_update_cms_row(sgx_ra_context_t ctx, uint8_t* ciphertext, s
 			for(k = num_het_start + 2; k < num_elems; k++)
 			{
 				rs_id_uint = (uint64_t) ((uint32_t*) plaintext) [k];
+				//printf("%llu\n", rs_id_uint);
 				cms_update_st_length(ALLELE_HOMOZYGOUS * sign);
 				cms_update_var_row(rs_id_uint, ALLELE_HETEROZYGOUS * sign, i);
 				cms_update_var_row(rs_id_uint, ALLELE_HETEROZYGOUS * sign, i + 1);

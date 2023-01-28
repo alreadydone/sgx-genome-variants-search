@@ -10,6 +10,12 @@
 
 extern struct mcsk* m_mcsk;
 
+/* typedef struct UniqBucket
+{
+	uint32_t id;
+	float val;
+} UniqBucket; */
+
 // Matrix Count Sketch: For Random Projection of Rows  
 typedef struct mcsk 
 {

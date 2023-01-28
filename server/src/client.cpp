@@ -8,6 +8,7 @@
 #include <ctime>
 #include <chrono>
 #include <thread>
+#include <algorithm>
 #include "sgx_urts.h"
 #include "ra.h"
 #include "Enclave_u.h"
@@ -1106,7 +1107,7 @@ void app_cms(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case, uint
 }
 
 void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case, \
-	uint32_t csz, int l, char *ofn, int k, int w, int d, int num_pc, float eps, \
+	uint32_t csz, int l, char *ofn, char *ifn, uint32_t uw, int k, int w, int d, int num_pc, float eps, \
 	bool sketching_flag, bool debug_flag)
 {
 	// Get the Enclave ID from the configuration
@@ -1114,6 +1115,32 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 
 	// Get the Remote Attestation context from the configuration
 	auto& ra_ctx = config.ra_ctx;
+
+	//FILE* snps_file = fopen(ifn, "r");
+	uint32_t* IDs = new uint32_t[uw];
+	ifstream fstr;
+	fstr.open(ifn);
+	fstr.read((char*)IDs, uw*sizeof(uint32_t));
+	fstr.close();
+	for (int i = 0; i < uw; i++)
+	{
+		uint32_t num = IDs[i];
+		// convert big-endian to little-endian
+		IDs[i] =
+		    ((num & 0x000000FF) << 24) |
+		    ((num & 0x0000FF00) << 8) |
+		    ((num & 0x00FF0000) >> 8) |
+		    ((num & 0xFF000000) >> 24);
+		//fstr.read(snps, uw);
+		//if (i < 100 || uw - i < 100) { fprintf(stderr, "%u\n", snps[i]); }
+	}
+	sort(IDs, IDs + uw);
+	for (int i = 0; i < uw; i++)
+	{
+		if (i < 100 || uw - i < 100) { fprintf(stderr, "%u\n", IDs[i]); }
+	}
+	// could even keep the training set numerator/denominator info here; just read in two more arrays, storing them in non-enclave memory.
+	//delete[] IDs;
 
 	// Make an ECALL to initialize the Enclave CSK structure
 	enclave_init_mcsk(eid, nf, num_pc, eps);
@@ -1215,6 +1242,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 
 		// Make an ECALL to initialize the Enclave CSK structure
 		enclave_init_csk_f(eid, w, d);
+		enclave_init_uniq(eid, uw, IDs);
 
 		// Second Pass: Update the CSK structure
 		fprintf(stderr, "Second Pass, updating CSK ...\n");
@@ -1535,6 +1563,15 @@ void new_parse(char* param_path, app_parameters** params, config_t& config)
 					(*params)->output_file = (char*) malloc(sizeof(char) * (strlen(token) + 1));
 					strncpy((*params)->output_file, token, strlen(token) + 1);
 				}
+				else if(strcmp(var_name, "UNIQ_BUCKET_SNPS") == 0)
+				{
+					(*params)->snps_input_file = (char*) malloc(sizeof(char) * (strlen(token) + 1));
+					strncpy((*params)->snps_input_file, token, strlen(token) + 1);
+				}
+				else if(strcmp(var_name, "NUM_UNIQ_BUCKETS") == 0)
+				{
+					(*params)->num_uniq_buckets = atoi(token);
+				}
 				else if(strcmp(var_name, "NUM_FILES") == 0)
 				{
 					(*params)->num_files = atoi(token);
@@ -1833,8 +1870,8 @@ int main(int argc, char** argv)
 				exit(1);
 			}
 			app_svd_mcsk(msgio, config, params->num_files, params->num_files_case, \
-					params->chunk_size, params->l, params->output_file, \
-					params->k, params->sketch_width, params->sketch_depth, \
+					params->chunk_size, params->l, params->output_file, params->snps_input_file, \
+					params->num_uniq_buckets, params->k, params->sketch_width, params->sketch_depth, \
 					params->num_pc, params->eps, false, false);
 		}
 		else if(strcmp(params->app_mode, "full") == 0)
@@ -1846,8 +1883,8 @@ int main(int argc, char** argv)
 				exit(1);
 			}
 			app_svd_mcsk(msgio, config, params->num_files, params->num_files_case, \
-					params->chunk_size, params->l, params->output_file, \
-					params->k, params->sketch_width, params->sketch_depth, \
+					params->chunk_size, params->l, params->output_file, params->snps_input_file, \
+					params->num_uniq_buckets, params->k, params->sketch_width, params->sketch_depth, \
 					params->num_pc, params->eps, true, false);
 		}
 

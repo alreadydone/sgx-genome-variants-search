@@ -4,6 +4,14 @@
 #include "inttypes.h"
 
 extern struct csk* m_csk;
+extern struct uniq* m_uniq;
+
+typedef struct uniq
+{
+	uint32_t width;
+	uint32_t* IDs;
+	int16_t* buckets;
+} uniq;
 
 typedef struct csk
 {
@@ -20,6 +28,7 @@ typedef struct csk
 	uint64_t* seeds;
 } csk;
 
+void uniq_init(uint32_t width, uint32_t* IDs);
 void csk_init(uint32_t, uint32_t);
 void csk_init_f(uint32_t, uint32_t);
 void csk_free();

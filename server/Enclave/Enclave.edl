@@ -89,6 +89,8 @@ enclave
 		public sgx_status_t ecall_thread_csk(int thread_num, int nrows_per_thread);
 		public sgx_status_t ecall_thread_csk_ca(int thread_num, int nrows_per_thread, int part_num);
 
+                // Unique buckets public ECALL interface
+                public void enclave_init_uniq(uint32_t UNIQ_CNT, [user_check] uint32_t* ID);
 		// Count-Sketch public ECALL interface
 		public void enclave_init_csk(int CSK_WIDTH, int CSK_DEPTH);
 		public void enclave_init_csk_f(int CSK_WIDTH, int CSK_DEPTH);

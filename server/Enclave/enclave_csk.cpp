@@ -1,10 +1,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sgx_trts.h>
+#include <algorithm>
 #include "enclave_csk.h"
 #include "util.h"
 
 struct csk* m_csk = NULL;
+struct uniq* m_uniq = NULL;
 
 static inline uint32_t calc_hash(uint64_t x, uint64_t a, uint64_t b)
 {
@@ -27,6 +29,15 @@ void csk_init_param(uint32_t width, uint32_t depth)
 	m_csk->width_minus_one = width - 1;
 	m_csk->seeds = NULL;
 	m_csk->s_thres = 200;
+}
+
+void uniq_init(uint32_t width, uint32_t* IDs)
+{
+	m_uniq = (uniq*) malloc(sizeof(uniq));
+	m_uniq->width = width;
+	m_uniq->IDs = IDs;
+	m_uniq->buckets = (int16_t*) malloc(width * sizeof(int16_t));
+	memset(m_uniq->buckets, 0, width * sizeof(int16_t));
 }
 
 void csk_init_seeds()
@@ -138,12 +149,21 @@ void csk_update_var(uint64_t item, int16_t count)
 	}
 }
 
+uint32_t uniq_bucket_find(uint32_t ID)
+{
+	uint32_t* p = stlpmtx_std::lower_bound(m_uniq->IDs, m_uniq->IDs + m_uniq->width, ID);
+	if (p == m_uniq->IDs + m_uniq->width || *p != ID) { return m_uniq->width; }
+	else { return p - m_uniq->IDs; }
+}
+
 void csk_update_var_f(uint64_t item, float count)
 {
 	uint32_t hash;
 	uint32_t pos;
-
-	for(size_t i = 0; i < m_csk->depth; i++)
+	
+	uint32_t uniq_pos = uniq_bucket_find(item);
+	if (uniq_pos < m_uniq->width) { m_uniq->buckets[uniq_pos] += count; }
+	else for(size_t i = 0; i < m_csk->depth; i++)
 	{
 		hash = cal_hash(item, m_csk->seeds[i << 1], m_csk->seeds[(i << 1) + 1]);
 		pos = hash & m_csk->width_minus_one;
@@ -159,6 +179,8 @@ void csk_update_var_f(uint64_t item, float count)
 		}
 	}
 }
+
+
 
 /***** Test function *****/
 void csk_update_var_row(uint64_t item, int16_t count, size_t row)
@@ -277,6 +299,9 @@ int16_t csk_query_median_even(uint64_t item)
 
 float csk_query_median_odd_f(uint64_t item)
 {
+	uint32_t uniq_pos = uniq_bucket_find(item);
+        if (uniq_pos < m_uniq->width) { return m_uniq->buckets[uniq_pos]; }
+
 	float* values;
 	float median;
 	uint32_t hash;
@@ -316,6 +341,9 @@ float csk_query_median_odd_f(uint64_t item)
 
 float csk_query_median_even_f(uint64_t item)
 {
+	uint32_t uniq_pos = uniq_bucket_find(item);
+        if (uniq_pos < m_uniq->width) { return m_uniq->buckets[uniq_pos]; }
+
 	float* values;
 	float median;
 	uint32_t hash;

@@ -12,6 +12,7 @@ typedef struct _params
 	char* port;
 	char* app_mode;
 	char* output_file;
+	char* snps_input_file;
 	int hash_option;
 	int num_buckets;
 	int init_capacity;
@@ -24,6 +25,7 @@ typedef struct _params
 	uint32_t num_cases;
 	uint32_t num_controls;
 	uint32_t chunk_size;
+	uint32_t num_uniq_buckets;
 	int k;
 	int l;
 	int num_pc;
