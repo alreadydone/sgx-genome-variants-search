@@ -1309,7 +1309,9 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 		uint8_t* num_elems_buf;
 		size_t len_num_elems;
 		msgio->read_bin((void**) &num_elems_buf, &len_num_elems);
+		fprintf(stderr, "read_bin done\n");
 		uint32_t num_elems = ((uint32_t*) num_elems_buf)[0];
+		fprintf(stderr, "accessed num_elem_buf\n");
 
 		// Now, receive and process next data chunk until all data is processed
 		uint32_t num_elems_rem = num_elems;
@@ -1330,7 +1332,8 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 			uint8_t* ciphertext;
 			size_t ciphertext_len;
 			msgio->read_bin((void**) &ciphertext, &ciphertext_len);
-
+			if (num_elems_rcvd < 100) { fprintf(stderr, "read_bin done %u\n", num_elems_rcvd); }
+			
 			// Make an ECALL to decrypt the data and process it inside the Enclave
 			enclave_decrypt_query_csk_f(eid, ra_ctx, ciphertext, ciphertext_len);
 			num_elems_rcvd = num_elems_rcvd +  to_read_elems;
@@ -1343,6 +1346,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 		// Stop timer and report time for the second pass over the data
 		duration = (std::clock() - start) / (double) CLOCKS_PER_SEC;
 		fprintf(stderr, "Third Pass (CSK) took: %lf seconds\n", duration);
+		enclave_free_csk(eid);	
 
 		// Last Pass: Use rhht and mh for pcc
 		fprintf(stderr, "Last pass, C-A Trend Test ...\n");

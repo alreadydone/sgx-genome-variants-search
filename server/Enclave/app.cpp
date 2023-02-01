@@ -1262,6 +1262,7 @@ void enclave_init_csk_f(int CSK_WIDTH, int CSK_DEPTH)
 void enclave_free_csk()
 {
 	csk_free();
+	uniq_free();
 }
 
 void enclave_decrypt_store_csk(sgx_ra_context_t ctx, uint8_t* ciphertext, size_t ciphertext_len)

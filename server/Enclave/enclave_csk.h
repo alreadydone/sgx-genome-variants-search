@@ -32,6 +32,7 @@ void uniq_init(uint32_t width, uint32_t* IDs);
 void csk_init(uint32_t, uint32_t);
 void csk_init_f(uint32_t, uint32_t);
 void csk_free();
+void uniq_free();
 void csk_setsth(int);
 void csk_update_var(uint64_t, int16_t);
 void csk_update_var_f(uint64_t, float);

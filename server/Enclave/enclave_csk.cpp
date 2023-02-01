@@ -40,6 +40,11 @@ void uniq_init(uint32_t width, uint32_t* IDs)
 	memset(m_uniq->buckets, 0, width * sizeof(int16_t));
 }
 
+void uniq_free()
+{
+	free(m_uniq->buckets);
+}
+
 void csk_init_seeds()
 {
 	uint32_t d = m_csk->depth;
