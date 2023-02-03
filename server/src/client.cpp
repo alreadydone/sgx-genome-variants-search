@@ -1257,6 +1257,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 			uint8_t* num_elems_buf;
 			size_t len_num_elems;
 			msgio->read_bin((void**) &num_elems_buf, &len_num_elems);
+			fprintf(stderr, "read_bin done\n");
 			uint32_t num_elems = ((uint32_t*) num_elems_buf)[0];
 
 			// Now, receive and process next data chunk until all data is processed
@@ -1287,6 +1288,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 				// We've processed the secret data, now either clean it up or use data sealing for a second pass later
 				delete[] ciphertext;
 			}
+			fprintf(stderr, "received and processed\n");
 		}
 
 		// Reset file_idx
@@ -1889,7 +1891,7 @@ int main(int argc, char** argv)
 			app_svd_mcsk(msgio, config, params->num_files, params->num_files_case, \
 					params->chunk_size, params->l, params->output_file, params->snps_input_file, \
 					params->num_uniq_buckets, params->k, params->sketch_width, params->sketch_depth, \
-					params->num_pc, params->eps, true, false);
+					params->num_pc, params->eps, true, true);
 		}
 
                 if (do_ra) {
