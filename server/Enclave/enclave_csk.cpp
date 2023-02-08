@@ -36,8 +36,8 @@ void uniq_init(uint32_t width, uint32_t* IDs)
 	m_uniq = (uniq*) malloc(sizeof(uniq));
 	m_uniq->width = width;
 	m_uniq->IDs = IDs;
-	m_uniq->buckets = (int16_t*) malloc(width * sizeof(int16_t));
-	memset(m_uniq->buckets, 0, width * sizeof(int16_t));
+	m_uniq->buckets = (float*) malloc(width * sizeof(float));
+	memset(m_uniq->buckets, 0, width * sizeof(float));
 }
 
 void uniq_free()

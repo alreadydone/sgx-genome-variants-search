@@ -10,7 +10,7 @@ typedef struct uniq
 {
 	uint32_t width;
 	uint32_t* IDs;
-	int16_t* buckets;
+	float* buckets;
 } uniq;
 
 typedef struct csk
