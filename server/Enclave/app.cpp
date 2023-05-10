@@ -1280,7 +1280,7 @@ void enclave_init_csk_f(int CSK_WIDTH, int CSK_DEPTH)
 	csk_init_f(CSK_WIDTH, CSK_DEPTH);
 
 	uint32_t d = m_csk->depth;
-	for(size_t i = 0; i < d << 2; i++)
+	for(uint32_t i = 0; i < d << 2; i++)
 	{
 		printf("%llu,", m_csk->seeds[i]);
 	}
@@ -2506,6 +2506,20 @@ void enclave_free_mh()
 	}
 }*/
 
+/*void enclave_get_mcsk_res(float* my_res)
+{
+	for(size_t i = 0; i < 2001; i++)
+	{
+		my_res[i] = enclave_mcsk_buf[i];
+	}
+}*/
+
+/*void enclave_get_mcsk_sigma(float* my_res)
+{
+	for(size_t i = 0; i < 2000; i++)
+	{
+		my_res[i] = enclave_mcsk_buf[i];
+	}
 }*/
 
 void enclave_get_eig_buf(float* my_res)
