@@ -80,13 +80,6 @@ void enclave_reset_file_idx()
 void enclave_init_mcsk(int MCSK_WIDTH, int MCSK_NUM_PC, float MCSK_EPS)
 {
 	mcsk_init(MCSK_WIDTH, MCSK_NUM_PC, MCSK_EPS);
-
-        for(size_t i = 0; i < 4; i++)
-        {
-                printf("%llu,", m_mcsk->seeds[i]);
-        }
-        printf("MCSK seeds printed\n");
-
 	phenotypes = (float*) malloc(MCSK_WIDTH * sizeof(float));
 }
 
@@ -279,13 +272,6 @@ void enclave_svd()
 		printf("pre free S\n");
 		free(S);
 	}
-	
-	printf("[");
-	for (int i = 0; i < MCSK_DEPTH; i++)
-	{
-		printf("%.6f,", phenotypes[i]);
-	}
-	printf("]\n");
 
 	// Keep only the first k rows of V, now stroed in the first k rows of A
 	printf("pre malloc enclave_eig\n");
@@ -303,13 +289,6 @@ void enclave_svd()
 	mcsk_free();
 	printf("pre free m_mcsk\n");
 	free(m_mcsk);
-
-	printf("[");
-        for (int i = 0; i < MCSK_DEPTH; i++)
-        {
-                printf("%.6f,", phenotypes[i]);
-        }
-        printf("]\n");
 }
 
 sgx_status_t ecall_thread_cms(int thread_num, int nrows_per_thread)
@@ -1278,13 +1257,6 @@ void enclave_init_csk(int CSK_WIDTH, int CSK_DEPTH)
 void enclave_init_csk_f(int CSK_WIDTH, int CSK_DEPTH)
 {
 	csk_init_f(CSK_WIDTH, CSK_DEPTH);
-
-	uint32_t d = m_csk->depth;
-	for(size_t i = 0; i < d << 2; i++)
-	{
-		printf("%llu,", m_csk->seeds[i]);
-	}
-	printf("CSK seeds printed\n");
 }
 
 void enclave_free_csk()
@@ -2506,6 +2478,20 @@ void enclave_free_mh()
 	}
 }*/
 
+/*void enclave_get_mcsk_res(float* my_res)
+{
+	for(size_t i = 0; i < 2001; i++)
+	{
+		my_res[i] = enclave_mcsk_buf[i];
+	}
+}*/
+
+/*void enclave_get_mcsk_sigma(float* my_res)
+{
+	for(size_t i = 0; i < 2000; i++)
+	{
+		my_res[i] = enclave_mcsk_buf[i];
+	}
 }*/
 
 void enclave_get_eig_buf(float* my_res)
