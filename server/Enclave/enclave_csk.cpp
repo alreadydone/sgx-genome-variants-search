@@ -59,6 +59,38 @@ void csk_init_seeds()
 		}
 		m_csk->seeds[(i << 1) + 1] = my_sgx_rand();
 	}
+	m_csk->seeds[0] = 720000562;
+	m_csk->seeds[1] = 1991531570;
+	m_csk->seeds[2] = 434130229;
+	m_csk->seeds[3] = 236176094;
+	m_csk->seeds[4] = 1410364956;
+	m_csk->seeds[5] = 558832819;
+	m_csk->seeds[6] = 1082144829;
+	m_csk->seeds[7] = 1843615989;
+	m_csk->seeds[8] = 1960050809;
+	m_csk->seeds[9] = 1183824161;
+	m_csk->seeds[10] = 781972793;
+	m_csk->seeds[11] = 213752735;
+	m_csk->seeds[12] = 1994798233;
+	m_csk->seeds[13] = 538550749;
+	m_csk->seeds[14] = 579807306;
+	m_csk->seeds[15] = 818076076;
+	m_csk->seeds[16] = 362290779;
+	m_csk->seeds[17] = 1028418883;
+	m_csk->seeds[18] = 1095440864;
+	m_csk->seeds[19] = 1928205998;
+	m_csk->seeds[20] = 1790571589;
+	m_csk->seeds[21] = 1149718712;
+	m_csk->seeds[22] = 293662817;
+	m_csk->seeds[23] = 963238324;
+	m_csk->seeds[24] = 904061715;
+	m_csk->seeds[25] = 438398632;
+	m_csk->seeds[26] = 253322470;
+	m_csk->seeds[27] = 527602069;
+	m_csk->seeds[28] = 1077411604;
+	m_csk->seeds[29] = 1756214037;
+	m_csk->seeds[30] = 982474161;
+	m_csk->seeds[31] = 388067056;
 }
 
 void csk_init(uint32_t width, uint32_t depth)

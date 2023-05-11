@@ -19,6 +19,10 @@ void mcsk_init_seeds()
 		}
 		m_mcsk->seeds[(i << 1) + 1] = my_sgx_rand();
 	}
+	m_mcsk->seeds[0] = 2126221484;
+	m_mcsk->seeds[1] = 1836357533;
+	m_mcsk->seeds[2] = 471546949;
+	m_mcsk->seeds[3] = 2111021441;
 }
 
 void mcsk_init(uint32_t width, uint32_t num_pc, float eps) 
