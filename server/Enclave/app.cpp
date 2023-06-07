@@ -280,12 +280,12 @@ void enclave_svd()
 		free(S);
 	}
 	
-	printf("[");
+	/*printf("[");
 	for (int i = 0; i < MCSK_DEPTH; i++)
 	{
 		printf("%.6f,", phenotypes[i]);
 	}
-	printf("]\n");
+	printf("]\n");*/
 
 	// Keep only the first k rows of V, now stroed in the first k rows of A
 	printf("pre malloc enclave_eig\n");
@@ -304,12 +304,12 @@ void enclave_svd()
 	printf("pre free m_mcsk\n");
 	free(m_mcsk);
 
-	printf("[");
+	/*printf("[");
         for (int i = 0; i < MCSK_DEPTH; i++)
         {
                 printf("%.6f,", phenotypes[i]);
         }
-        printf("]\n");
+        printf("]\n");*/
 }
 
 sgx_status_t ecall_thread_cms(int thread_num, int nrows_per_thread)
@@ -1277,6 +1277,35 @@ void enclave_init_csk(int CSK_WIDTH, int CSK_DEPTH)
 
 void enclave_init_csk_f(int CSK_WIDTH, int CSK_DEPTH)
 {
+	printf("phenotypes: [");
+        for (int i = 0; i < MCSK_DEPTH; i++)
+        {
+                printf("%.6f,", phenotypes[i]);
+        }
+        printf("]\n");
+
+        printf("u: [");
+        for (int i = 0; i < MCSK_DEPTH; i++)
+        {
+                printf("%.6e,", u[i]);
+        }
+        printf("]\n");
+
+        printf("enclave_eig[0]: [");
+        for (int i = 0; i < MCSK_DEPTH; i++)
+        {
+                printf("%.6e,", enclave_eig[0][i]);
+        }
+        printf("]\n");
+
+        printf("enclave_eig[1]: [");
+        for (int i = 0; i < MCSK_DEPTH; i++)
+        {
+                printf("%.6e,", enclave_eig[1][i]);
+        }
+        printf("]\n");
+
+
 	csk_init_f(CSK_WIDTH, CSK_DEPTH);
 
 	uint32_t d = m_csk->depth;
@@ -2343,10 +2372,46 @@ void rhht_init_cat_chi_sq(uint16_t total, int k)
 	}
 
 	float sy2 = dot_prod(phenotypes, phenotypes, total);
+	printf("sy = %f, sy2 = %f\n", sy, sy2);
+
+	/*printf("phenotypes: [");
+	for (int i = 0; i < MCSK_DEPTH; i++)
+	{
+		printf("%.6f,", phenotypes[i]);
+	}
+	printf("]\n");
+	
+
+	printf("u: [");
+	for (int i = 0; i < MCSK_DEPTH; i++)
+	{
+		printf("%.6f,", u[i]);
+	}
+	printf("]\n");
+
+	printf("enclave_eig[0]: [");
+	for (int i = 0; i < MCSK_DEPTH; i++)
+	{
+		printf("%.6f,", enclave_eig[0][i]);
+	}
+	printf("]\n");
+
+	printf("enclave_eig[1]: [");
+	for (int i = 0; i < MCSK_DEPTH; i++)
+	{
+		printf("%.6f,", enclave_eig[1][i]);
+	}
+	printf("]\n");*/
+
+
 	for(uint32_t i = 0; i < rhht_snp_table_pcc->capacity; i++)
 	{
 		if(rhht_snp_table_pcc->buffer[i].key != 0)
 		{
+			if(i < 1000 || !rhht_snp_table_pcc->buffer[i].ssqg)
+			{
+				printf("key = %u, ssqg = %u, dotprod = %f, sx = %f, pc_proj0 = %f, pc_proj1 = %f\n", rhht_snp_table_pcc->buffer[i].key, (unsigned int)rhht_snp_table_pcc->buffer[i].ssqg, rhht_snp_table_pcc->buffer[i].dotprod, rhht_snp_table_pcc->buffer[i].sx, rhht_snp_table_pcc->buffer[i].pc_projections[0], rhht_snp_table_pcc->buffer[i].pc_projections[1]);
+			}
 			// Calculate the chi squared value
 			chi_sq_val = cat_chi_sq(rhht_snp_table_pcc->buffer[i].ssqg, total, rhht_snp_table_pcc->buffer[i].dotprod, \
 						rhht_snp_table_pcc->buffer[i].sx, sy, sy2, rhht_snp_table_pcc->buffer[i].pc_projections);

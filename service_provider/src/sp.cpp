@@ -78,6 +78,7 @@ void send_encrypted_vcf(MsgIO* msgio, uint32_t num_files, uint32_t chunk_size, i
 
 	for(uint32_t i = 0; i < num_files; i++)
 	{
+		fprintf(stderr, "%s\n", filenames[index[i]] + 20);
 		if(stat(filenames[index[i]], &st) != -1)
 		{
 			// Open input binary file for reading
