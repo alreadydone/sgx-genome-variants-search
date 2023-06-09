@@ -160,7 +160,37 @@ void enclave_decrypt_update_mcsk(sgx_ra_context_t ctx, uint8_t* ciphertext, size
 
 void enclave_mcsk_mean_centering()
 {
+	printf("MCSK sketch matrix: [");
+        for (int i = 0; i < m_mcsk->depth; i++)
+        {
+		printf("[");
+		for (int j = 0; j < m_mcsk->m; j++)
+		{
+			printf("%.6f,", m_mcsk->msketchf[i][j]);
+		}
+                printf("],");
+        }
+	printf("]\n");
+	printf("MCSK sketch sums: [");
+	for (int i = 0; i < m_mcsk->depth; i++)
+	{
+		printf("%.6f,", m_mcsk->msketchf[i][m_mcsk->m]);
+	}
+	printf("]\n");
+
 	mcsk_mean_centering();
+
+	printf("MCSK sketch matrix after mean centering: [");
+        for (int i = 0; i < m_mcsk->depth; i++)
+        {
+                printf("[");
+                for (int j = 0; j < m_mcsk->m; j++)
+                {       
+                        printf("%.6f,", m_mcsk->msketchf[i][j]);
+                }
+                printf("],");
+        }
+        printf("]\n");
 }
 
 void enclave_svd()
