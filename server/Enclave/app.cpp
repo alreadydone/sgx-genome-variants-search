@@ -124,10 +124,10 @@ void enclave_decrypt_update_mcsk(sgx_ra_context_t ctx, uint8_t* ciphertext, size
 	uint32_t num_het_start = ((uint32_t*) plaintext) [1];
 
 	// Set initial phenotype
-	phenotypes[file_idx] = -1.0;
+	phenotypes[file_idx] = 1.0; //-1.0;
 	if(patient_status == 0)
 	{
-		phenotypes[file_idx] = 1.0;
+		phenotypes[file_idx] = 0.0; //1.0;
 	}
 	printf("OKfile_idx\n");
 
