@@ -30,11 +30,11 @@ void mcsk_init_seeds()
 	m_mcsk->seeds[0] = 2126221484;
 	m_mcsk->seeds[1] = 1836357533;
 	m_mcsk->seeds[2] = 471546949;
-	m_mcsk->seeds[3] = 2111021441;*/
+	m_mcsk->seeds[3] = 2111021441;
         m_mcsk->seeds[0] = 2114241361;
         m_mcsk->seeds[1] = 560603303;
         m_mcsk->seeds[2] = 369083119;
-        m_mcsk->seeds[3] = 811664272;
+        m_mcsk->seeds[3] = 811664272;*/
 }
 
 void mcsk_init(uint32_t width, uint32_t num_pc, float eps) 
