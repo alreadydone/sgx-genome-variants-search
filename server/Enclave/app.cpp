@@ -2438,7 +2438,7 @@ void rhht_init_cat_chi_sq(uint16_t total, int k)
 	{
 		if(rhht_snp_table_pcc->buffer[i].key != 0)
 		{
-			if(i < 1000 || !rhht_snp_table_pcc->buffer[i].ssqg)
+			if(true) // i < 1000 || !rhht_snp_table_pcc->buffer[i].ssqg)
 			{
 				printf("i = %u, key = %u, ssqg = %u, dotprod = %f, sx = %f, pc_proj0 = %f, pc_proj1 = %f\n", i, rhht_snp_table_pcc->buffer[i].key, (unsigned int)rhht_snp_table_pcc->buffer[i].ssqg, rhht_snp_table_pcc->buffer[i].dotprod, rhht_snp_table_pcc->buffer[i].sx, rhht_snp_table_pcc->buffer[i].pc_projections[0], rhht_snp_table_pcc->buffer[i].pc_projections[1]);
 			}
