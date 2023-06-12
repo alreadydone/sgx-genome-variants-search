@@ -808,16 +808,20 @@ void enclave_decrypt_process_sketch_rhht(sgx_ra_context_t ctx, uint8_t* cipherte
 
 void enclave_init_rhht_pcc(int MH_INIT_CAPACITY)
 {
+
 	// Allocate enclave Robin-Hood hash table
 	// TODO: Allow growing (currently not)
 	allocate_table_pcc(MH_INIT_CAPACITY * 2, MCSK_NUM_PC);
 
+	printf("\nBegin Proxy Values\n");
 	// Insert keys, initialize allele counts to be 0
 	for(size_t i = 0; i < MH_INIT_CAPACITY; i++)
 	{
+		printf("%d %.6f\n", mh->mh_array_f[i].key, mh->mh_array_f[i].val); 
 		// NOTE: Setting allele_type to 0 is normally meaningless, this is a hack.
 		insert_pcc(mh->mh_array_f[i].key);
 	}
+	printf("\n");
 
 	// Deallocate min heap
 	free_heap();
