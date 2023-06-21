@@ -52,7 +52,6 @@ int MCSK_NUM_PC = 0;
 /*
  * printf:
  *   Invokes OCALL to display the enclave buffer to the terminal.
- */
 int printf(const char* fmt, ...)
 {
     char buf[BUFSIZ] = { '\0' };
@@ -62,7 +61,7 @@ int printf(const char* fmt, ...)
     va_end(ap);
     ocall_print_string(buf);
     return (int)strnlen(buf, BUFSIZ - 1) + 1;
-}
+}*/
 
 void enclave_reset_file_idx()
 {
@@ -808,20 +807,20 @@ void enclave_decrypt_process_sketch_rhht(sgx_ra_context_t ctx, uint8_t* cipherte
 
 void enclave_init_rhht_pcc(int MH_INIT_CAPACITY)
 {
-
+	printf("\nEnd Proxy Values\n");
 	// Allocate enclave Robin-Hood hash table
 	// TODO: Allow growing (currently not)
 	allocate_table_pcc(MH_INIT_CAPACITY * 2, MCSK_NUM_PC);
 
-	printf("\nBegin Proxy Values\n");
+	//printf("\nBegin Proxy Values\n");
 	// Insert keys, initialize allele counts to be 0
 	for(size_t i = 0; i < MH_INIT_CAPACITY; i++)
 	{
-		printf("%d %.6f\n", mh->mh_array_f[i].key, mh->mh_array_f[i].val); 
+		//printf("%d %.6f\n", mh->mh_array_f[i].key, mh->mh_array_f[i].val); 
 		// NOTE: Setting allele_type to 0 is normally meaningless, this is a hack.
 		insert_pcc(mh->mh_array_f[i].key);
 	}
-	printf("\n");
+	//printf("\n");
 
 	// Deallocate min heap
 	free_heap();
@@ -1755,6 +1754,8 @@ void enclave_decrypt_query_csk_f(sgx_ra_context_t ctx, uint8_t* ciphertext, size
 			rs_id_uint = (uint64_t) ((uint32_t*) plaintext) [i];
 			
 			est_diff = csk_query_median_even_f(rs_id_uint);
+			printf("%llu %.6f\n", rs_id_uint, est_diff);
+
 			if(est_diff < 0)
 			{
 				est_diff = -est_diff;
@@ -1777,6 +1778,7 @@ void enclave_decrypt_query_csk_f(sgx_ra_context_t ctx, uint8_t* ciphertext, size
 		{
 			rs_id_uint = (uint64_t) ((uint32_t*) plaintext) [i];
 			est_diff = csk_query_median_odd_f(rs_id_uint);
+			printf("%llu %.6f\n", rs_id_uint, est_diff);
 			if(est_diff < 0)
 			{
 				est_diff = -est_diff;
@@ -2587,7 +2589,14 @@ void enclave_init_mh(int MH_INIT_CAPACITY)
 
 void enclave_init_mh_f(int MH_INIT_CAPACITY)
 {
+	printf("Unique bucket access count: %d\n", uniq_access_count);
+	printf("Begin Unique Bucket Values\n");
+	for(int i = 0; i < m_uniq->width; i++)
+	{
+		printf("%u %.6f\n", m_uniq->IDs[i], m_uniq->buckets[i]);
+	}
 	allocate_heap_f(MH_INIT_CAPACITY);
+	printf("\nBegin Proxy Values\n");
 }
 
 void enclave_free_mh()

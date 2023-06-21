@@ -3,6 +3,9 @@
 
 #include "inttypes.h"
 
+int printf(const char* fmt, ...);
+
+extern uint64_t uniq_access_count;
 extern struct csk* m_csk;
 extern struct uniq* m_uniq;
 

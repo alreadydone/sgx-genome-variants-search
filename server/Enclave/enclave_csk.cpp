@@ -2,9 +2,22 @@
 #include <string.h>
 #include <sgx_trts.h>
 #include <algorithm>
+
+#include "config.h"
+#include "Enclave_t.h"
+#include "enclave_crypto.h"
+#include "math.h"
+#include "enclave_mh.h"
+#include "enclave_oa.h"
+#include "enclave_rhht.h"
+#include "enclave_cmtf.h"
 #include "enclave_csk.h"
+#include "enclave_cms.h"
+#include "enclave_mcsk.h"
+#include "svd.h"
 #include "util.h"
 
+uint64_t uniq_access_count = 0;
 struct csk* m_csk = NULL;
 struct uniq* m_uniq = NULL;
 
@@ -257,13 +270,36 @@ uint32_t uniq_bucket_find(uint32_t ID)
 	else { return p - m_uniq->IDs; }
 }
 
+
+/*
+ * printf:
+ *   Invokes OCALL to display the enclave buffer to the terminal.
+ */
+int printf(const char* fmt, ...)
+{
+    char buf[BUFSIZ] = { '\0' };
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, BUFSIZ, fmt, ap);
+    va_end(ap);
+    ocall_print_string(buf);
+    return (int)strnlen(buf, BUFSIZ - 1) + 1;
+}
+
 void csk_update_var_f(uint64_t item, float count)
 {
 	uint32_t hash;
 	uint32_t pos;
 	
 	uint32_t uniq_pos = uniq_bucket_find(item);
-	if (uniq_pos < m_uniq->width) { m_uniq->buckets[uniq_pos] += count; }
+	if (item == 100665936) { printf("Before change: %.6f\n", m_uniq->buckets[uniq_pos]); }
+	if (uniq_pos < m_uniq->width) {
+		uniq_access_count += 1;
+		m_uniq->buckets[uniq_pos] += count;
+		if (m_uniq->IDs[uniq_pos] != item)
+		{ printf("Problem! %u %u %u\n", uniq_pos, m_uniq->IDs[uniq_pos], item); }
+		if (item == 100665936) { printf("After change: %.6f\n", m_uniq->buckets[uniq_pos]); }
+	}
 	else for(size_t i = 0; i < m_csk->depth; i++)
 	{
 		hash = cal_hash(item, m_csk->seeds[i << 1], m_csk->seeds[(i << 1) + 1]);
