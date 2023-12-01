@@ -32,6 +32,11 @@ void deallocate_table()
 	free(rhht_snp_table);
 }
 
+void allocate_stats_table(uint32_t capacity, uint8_t num_pc)
+{
+
+}
+
 void allocate_table_pcc(uint32_t capacity, uint8_t num_pc)
 {
 	// Allocate memory for the top hash_table structure

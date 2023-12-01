@@ -60,6 +60,7 @@ void allocate_table(uint32_t);
 
 void deallocate_table();
 
+void allocate_stats_table(uint32_t, uint8_t);
 void allocate_table_pcc(uint32_t, uint8_t);
 
 void deallocate_table_pcc();

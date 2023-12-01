@@ -807,6 +807,11 @@ void enclave_decrypt_process_sketch_rhht(sgx_ra_context_t ctx, uint8_t* cipherte
 
 void enclave_init_rhht_pcc(int MH_INIT_CAPACITY)
 {
+	sort_mh_by_key();
+	// Allocate array to store statistics to compute the C-A Chi-square values
+	allocate_stats_table(MH_INIT_CAPACITY, MCSK_NUM_PC);
+}
+/*{
 	printf("\nEnd Proxy Values\n");
 	// Allocate enclave Robin-Hood hash table
 	// TODO: Allow growing (currently not)
@@ -827,7 +832,7 @@ void enclave_init_rhht_pcc(int MH_INIT_CAPACITY)
 
 	// Possibly outside enclave_init_sketch_rhht()
 	// Deallocate sketches
-}
+}*/
 
 void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext, size_t ciphertext_len, uint16_t* file_idx_addr)
 {

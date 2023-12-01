@@ -28,6 +28,7 @@ struct min_heap
 	uint32_t max_heap_size;
 };
 
+void sort_mh_by_key();
 void allocate_heap(uint32_t);
 void allocate_heap_f(uint32_t);
 void free_heap();
