@@ -2,11 +2,13 @@
 #define __ENCLAVE_RHHT_H
 
 #include "inttypes.h"
+#include "enclave_mh.h"
 
 #define LOAD_FACTOR_PERCENT	95
 
 extern struct rhht_table* rhht_snp_table;
 extern struct rhht_table_pcc* rhht_snp_table_pcc;
+extern struct elem_pcc* stats_table;
 
 struct elem
 {
@@ -15,10 +17,17 @@ struct elem
 	uint16_t control_count;
 };
 
+struct elem_pcc
+{
+	uint16_t ssqg;
+	float sx;
+	float pc_projections[2];
+};
+
 // rank(PCC^2) = rank[(m * dotprod - s_x * s_y)^2 / (m * s_xx - s_x^2)]
 // Require <= 16000 cases + controls
 // Each elem_pcc occupies 4 * k + 14 bytes
-struct elem_pcc
+/*struct elem_pcc
 {
 	uint32_t key;
 
@@ -37,7 +46,7 @@ struct elem_pcc
 	// Projection of genotypes to the k-dimensional subspace from PCA
 	// s_xx = ssqg - <pc_projections, pc_projections>
 	float* pc_projections;
-};
+};*/
 
 struct rhht_table
 {

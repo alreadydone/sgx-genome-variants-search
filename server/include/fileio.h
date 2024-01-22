@@ -29,6 +29,8 @@ int from_file(unsigned char *dest, char *file, off_t *len);
 int from_hexstring_file(unsigned char *dest, char *file, size_t len);
 int to_hexstring_file(unsigned char *dest, char *file, size_t len);
 
+void ocall_print_string(const char *str);
+
 #ifdef __cplusplus
 };
 #endif

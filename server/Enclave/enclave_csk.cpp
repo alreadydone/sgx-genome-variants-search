@@ -3,18 +3,19 @@
 #include <sgx_trts.h>
 #include <algorithm>
 
-#include "config.h"
-#include "Enclave_t.h"
-#include "enclave_crypto.h"
-#include "math.h"
-#include "enclave_mh.h"
-#include "enclave_oa.h"
-#include "enclave_rhht.h"
-#include "enclave_cmtf.h"
+//#include "config.h"
+//#include "Enclave_t.h"
+//#include "enclave_crypto.h"
+//#include "math.h"
+//#include "enclave_mh.h"
+//#include "enclave_oa.h"
+//#include "enclave_rhht.h"
+//#include "enclave_cmtf.h"
 #include "enclave_csk.h"
-#include "enclave_cms.h"
-#include "enclave_mcsk.h"
-#include "svd.h"
+#include "fileio.h"
+//#include "enclave_cms.h"
+//#include "enclave_mcsk.h"
+//#include "svd.h"
 #include "util.h"
 
 uint64_t uniq_access_count = 0;

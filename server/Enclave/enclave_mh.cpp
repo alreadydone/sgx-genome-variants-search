@@ -3,10 +3,15 @@
 
 struct min_heap* mh = NULL;
 
-int cmpfunc_mh_key(const mh_node_f *a, const mh_node_f *b)
+int cmpfunc_mh_key(const void *a, const void *b)
 {
-	return a->key < b->key;
+	return ((mh_node_f*) a)->key < ((mh_node_f*) b)->key;
 }
+int cmp_mh_key(const mh_node_f &a, const mh_node_f &b)
+{
+	return a.key < b.key;
+}
+
 void sort_mh_by_key()
 {
 	qsort(mh->mh_array_f, mh->max_heap_size, sizeof(mh_node_f), cmpfunc_mh_key);

@@ -807,7 +807,6 @@ void enclave_decrypt_process_sketch_rhht(sgx_ra_context_t ctx, uint8_t* cipherte
 
 void enclave_init_rhht_pcc(int MH_INIT_CAPACITY)
 {
-	sort_mh_by_key();
 	// Allocate array to store statistics to compute the C-A Chi-square values
 	allocate_stats_table(MH_INIT_CAPACITY, MCSK_NUM_PC);
 }
@@ -873,16 +872,16 @@ void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext,
 		// If found, update entry based on allele type
 		if(index != -1)
 		{
-			rhht_snp_table_pcc->buffer[index].ssqg += 4;
+			stats_table[index].ssqg += 4;
 			if (file_idx == num_files) printf("index okay\n");
-			rhht_snp_table_pcc->buffer[index].dotprod += (phenotypes[file_idx] * 2);
+			mh->mh_array_f[index].val += (phenotypes[file_idx] * 2);
 			if (file_idx == num_files) printf("file_idx okay\n");
 			//rhht_snp_table_pcc->buffer[index].dotprod += 1;
-			rhht_snp_table_pcc->buffer[index].sx += (2 * (1.0 - u[file_idx]));
+			stats_table[index].sx += (2 * (1.0 - u[file_idx]));
 			//rhht_snp_table_pcc->buffer[index].sx += 1;
 			for(int pc = 0; pc < MCSK_NUM_PC; pc++)
 			{
-				rhht_snp_table_pcc->buffer[index].pc_projections[pc] += (enclave_eig[pc][file_idx] * 2);
+				stats_table[index].pc_projections[pc] += (enclave_eig[pc][file_idx] * 2);
 				//rhht_snp_table_pcc->buffer[index].pc_projections[pc] += 1;
 			}
 			if (file_idx == num_files) printf("pc okay\n");
@@ -899,17 +898,17 @@ void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext,
 		// If found, update entry based on allele type
 		if(index != -1)
 		{
-			rhht_snp_table_pcc->buffer[index].ssqg += 1;
+			stats_table[index].ssqg += 1;
 			if (file_idx == num_files) printf("index okay 2\n");
-			rhht_snp_table_pcc->buffer[index].dotprod += phenotypes[file_idx];
+			mh->mh_array_f[index].val += phenotypes[file_idx];
 			if (file_idx == num_files) printf("file_idx okay 2\n");
 	                //rhht_snp_table_pcc->buffer[index].dotprod += 1;
-			rhht_snp_table_pcc->buffer[index].sx += (1.0 - u[file_idx]);
+			stats_table[index].sx += (1.0 - u[file_idx]);
                         //rhht_snp_table_pcc->buffer[index].sx += 1;
 
 			for(int pc = 0; pc < MCSK_NUM_PC; pc++)
 			{
-				rhht_snp_table_pcc->buffer[index].pc_projections[pc] += enclave_eig[pc][file_idx];
+				stats_table[index].pc_projections[pc] += enclave_eig[pc][file_idx];
 				//rhht_snp_table_pcc->buffer[index].pc_projections[pc] += 1;
 			}
 			if (file_idx == num_files) printf("pc okay 2\n");
@@ -2445,17 +2444,17 @@ void rhht_init_cat_chi_sq(uint16_t total, int k)
 	printf("]\n");*/
 
 
-	for(uint32_t i = 0; i < rhht_snp_table_pcc->capacity; i++)
+	for(uint32_t i = 0; i < mh->max_heap_size; i++)
 	{
-		if(rhht_snp_table_pcc->buffer[i].key != 0)
+		if(mh->mh_array_f[i].key != 0)
 		{
 			if(true) // i < 1000 || !rhht_snp_table_pcc->buffer[i].ssqg)
 			{
-				printf("i = %u, key = %u, ssqg = %u, dotprod = %f, sx = %f, pc_proj0 = %f, pc_proj1 = %f\n", i, rhht_snp_table_pcc->buffer[i].key, (unsigned int)rhht_snp_table_pcc->buffer[i].ssqg, rhht_snp_table_pcc->buffer[i].dotprod, rhht_snp_table_pcc->buffer[i].sx, rhht_snp_table_pcc->buffer[i].pc_projections[0], rhht_snp_table_pcc->buffer[i].pc_projections[1]);
+				printf("i = %u, key = %u, ssqg = %u, dotprod = %f, sx = %f, pc_proj0 = %f, pc_proj1 = %f\n", i, mh->mh_array_f[i].key, (unsigned int)stats_table[i].ssqg, mh->mh_array_f[i].val, stats_table[i].sx, stats_table[i].pc_projections[0], stats_table[i].pc_projections[1]);
 			}
 			// Calculate the chi squared value
-			chi_sq_val = cat_chi_sq(rhht_snp_table_pcc->buffer[i].ssqg, total, rhht_snp_table_pcc->buffer[i].dotprod, \
-						rhht_snp_table_pcc->buffer[i].sx, sy, sy2, rhht_snp_table_pcc->buffer[i].pc_projections);
+			chi_sq_val = cat_chi_sq(stats_table[i].ssqg, total, mh->mh_array_f[i].val, \
+						stats_table[i].sx, sy, sy2, stats_table[i].pc_projections);
 			if(isnan(chi_sq_val))
 			{
 				continue;
@@ -2463,7 +2462,7 @@ void rhht_init_cat_chi_sq(uint16_t total, int k)
 			// If the top-k array is not full, add current snp without any checks
 			if(num_used < k)
 			{
-				enc_id_buf[num_used] = rhht_snp_table_pcc->buffer[i].key;
+				enc_id_buf[num_used] = mh->mh_array_f[i].key;
 				enc_res_buf[num_used] = chi_sq_val;
 				num_used = num_used + 1;
 			}
@@ -2483,7 +2482,7 @@ void rhht_init_cat_chi_sq(uint16_t total, int k)
 				// Replace the element at index_min by the current element
 				if(chi_sq_val > enc_res_buf[index_min])
 				{
-					enc_id_buf[index_min] = rhht_snp_table_pcc->buffer[i].key;
+					enc_id_buf[index_min] = mh->mh_array_f[i].key;
 					enc_res_buf[index_min] = chi_sq_val;
 				}
 			}
