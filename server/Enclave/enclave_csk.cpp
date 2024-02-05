@@ -293,13 +293,13 @@ void csk_update_var_f(uint64_t item, float count)
 	uint32_t pos;
 	
 	uint32_t uniq_pos = uniq_bucket_find(item);
-	if (item == 100665936) { printf("Before change: %.6f\n", m_uniq->buckets[uniq_pos]); }
+	//if (item == 100665936) { printf("Before change: %.6f\n", m_uniq->buckets[uniq_pos]); }
 	if (uniq_pos < m_uniq->width) {
 		uniq_access_count += 1;
 		m_uniq->buckets[uniq_pos] += count;
 		if (m_uniq->IDs[uniq_pos] != item)
 		{ printf("Problem! %u %u %u\n", uniq_pos, m_uniq->IDs[uniq_pos], item); }
-		if (item == 100665936) { printf("After change: %.6f\n", m_uniq->buckets[uniq_pos]); }
+		//if (item == 100665936) { printf("After change: %.6f\n", m_uniq->buckets[uniq_pos]); }
 	}
 	else for(size_t i = 0; i < m_csk->depth; i++)
 	{

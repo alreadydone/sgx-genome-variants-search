@@ -807,8 +807,18 @@ void enclave_decrypt_process_sketch_rhht(sgx_ra_context_t ctx, uint8_t* cipherte
 
 void enclave_init_rhht_pcc(int MH_INIT_CAPACITY)
 {
+	printf("before MH sort\n");
+	for(uint32_t i = 0; i < mh->max_heap_size; i++)
+	{
+		printf("i = %u, key = %u\n", i, mh->mh_array_f[i].key);
+	}
 	// Allocate array to store statistics to compute the C-A Chi-square values
 	allocate_stats_table(MH_INIT_CAPACITY, MCSK_NUM_PC);
+	printf("before MH sort\n");
+	for(uint32_t i = 0; i < mh->max_heap_size; i++)
+        {
+                printf("i = %u, key = %u\n", i, mh->mh_array_f[i].key);
+        }
 }
 /*{
 	printf("\nEnd Proxy Values\n");
@@ -872,10 +882,11 @@ void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext,
 		// If found, update entry based on allele type
 		if(index != -1)
 		{
+			printf("%d ", index);
 			stats_table[index].ssqg += 4;
-			if (file_idx == num_files) printf("index okay\n");
+			//if (file_idx == num_files) printf("index okay\n");
 			mh->mh_array_f[index].val += (phenotypes[file_idx] * 2);
-			if (file_idx == num_files) printf("file_idx okay\n");
+			//if (file_idx == num_files) printf("file_idx okay\n");
 			//rhht_snp_table_pcc->buffer[index].dotprod += 1;
 			stats_table[index].sx += (2 * (1.0 - u[file_idx]));
 			//rhht_snp_table_pcc->buffer[index].sx += 1;
@@ -884,7 +895,16 @@ void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext,
 				stats_table[index].pc_projections[pc] += (enclave_eig[pc][file_idx] * 2);
 				//rhht_snp_table_pcc->buffer[index].pc_projections[pc] += 1;
 			}
-			if (file_idx == num_files) printf("pc okay\n");
+			//if (file_idx == num_files) printf("pc okay\n");
+
+			if(file_idx == 0)
+			{
+				printf("i = %u, key = %u, ssqg = %u, dotprod = %f, sx = %f, pc_proj0 = %f, pc_proj1 = %f\n", index, mh->mh_array_f[index].key, (unsigned int)stats_table[index].ssqg, mh->mh_array_f[index].val, stats_table[index].sx, stats_table[index].pc_projections[0], stats_table[index].pc_projections[1]);
+			}
+		}
+		else
+		{
+			if(file_idx == 0) printf("x");  //not found ");
 		}
 	}
 
@@ -2448,7 +2468,7 @@ void rhht_init_cat_chi_sq(uint16_t total, int k)
 	{
 		if(mh->mh_array_f[i].key != 0)
 		{
-			if(true) // i < 1000 || !rhht_snp_table_pcc->buffer[i].ssqg)
+			if(i % 1000 == 0) //true) // i < 1000 || !rhht_snp_table_pcc->buffer[i].ssqg)
 			{
 				printf("i = %u, key = %u, ssqg = %u, dotprod = %f, sx = %f, pc_proj0 = %f, pc_proj1 = %f\n", i, mh->mh_array_f[i].key, (unsigned int)stats_table[i].ssqg, mh->mh_array_f[i].val, stats_table[i].sx, stats_table[i].pc_projections[0], stats_table[i].pc_projections[1]);
 			}
@@ -2594,11 +2614,11 @@ void enclave_init_mh(int MH_INIT_CAPACITY)
 void enclave_init_mh_f(int MH_INIT_CAPACITY)
 {
 	printf("Unique bucket access count: %d\n", uniq_access_count);
-	printf("Begin Unique Bucket Values\n");
+	/*printf("Begin Unique Bucket Values\n");
 	for(int i = 0; i < m_uniq->width; i++)
 	{
 		printf("%u %.6f\n", m_uniq->IDs[i], m_uniq->buckets[i]);
-	}
+	}*/
 	allocate_heap_f(MH_INIT_CAPACITY);
 	printf("\nBegin Proxy Values\n");
 }
