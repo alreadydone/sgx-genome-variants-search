@@ -680,22 +680,8 @@ void enclave_decrypt_process_sketch_rhht(sgx_ra_context_t ctx, uint8_t* cipherte
 
 void enclave_init_rhht_pcc(int MH_INIT_CAPACITY)
 {
-	// Allocate enclave Robin-Hood hash table
-	// TODO: Allow growing (currently not)
-	allocate_table_pcc(MH_INIT_CAPACITY * 2, MCSK_NUM_PC);
-
-	// Insert keys, initialize allele counts to be 0
-	for(size_t i = 0; i < MH_INIT_CAPACITY; i++)
-	{
-		// NOTE: Setting allele_type to 0 is normally meaningless, this is a hack.
-		insert_pcc(mh->mh_array_f[i].key);
-	}
-
-	// Deallocate min heap
-	free_heap();
-
-	// Possibly outside enclave_init_sketch_rhht()
-	// Deallocate sketches
+	// Allocate array to store statistics to compute the C-A Chi-square values
+	allocate_stats_table(MH_INIT_CAPACITY, MCSK_NUM_PC);
 }
 
 void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext, size_t ciphertext_len)
@@ -730,12 +716,12 @@ void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext,
 		// If found, update entry based on allele type
 		if(index != -1)
 		{
-			rhht_snp_table_pcc->buffer[index].ssqg += 4;
-			rhht_snp_table_pcc->buffer[index].dotprod += (phenotypes[file_idx] * 2);
-			rhht_snp_table_pcc->buffer[index].sx += (2 * (1.0 - u[file_idx]));
+			stats_table[index].ssqg += 4;
+			mh->mh_array_f[index].val += (phenotypes[file_idx] * 2);
+			stats_table[index].sx += (2 * (1.0 - u[file_idx]));
 			for(int pc = 0; pc < MCSK_NUM_PC; pc++)
 			{
-				rhht_snp_table_pcc->buffer[index].pc_projections[pc] += (enclave_eig[pc][file_idx] * 2);
+				stats_table[index].pc_projections[pc] += (enclave_eig[pc][file_idx] * 2);
 			}
 		}
 	}
@@ -749,12 +735,12 @@ void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext,
 		// If found, update entry based on allele type
 		if(index != -1)
 		{
-			rhht_snp_table_pcc->buffer[index].ssqg += 1;
-			rhht_snp_table_pcc->buffer[index].dotprod += phenotypes[file_idx];
-			rhht_snp_table_pcc->buffer[index].sx += (1.0 - u[file_idx]);
+			stats_table[index].ssqg += 1;
+			mh->mh_array_f[index].val += phenotypes[file_idx];
+			stats_table[index].sx += (1.0 - u[file_idx]);
 			for(int pc = 0; pc < MCSK_NUM_PC; pc++)
 			{
-				rhht_snp_table_pcc->buffer[index].pc_projections[pc] += enclave_eig[pc][file_idx];
+				stats_table[index].pc_projections[pc] += enclave_eig[pc][file_idx];
 			}
 		}
 	}
@@ -2212,13 +2198,13 @@ void rhht_init_cat_chi_sq(uint16_t total, int k)
 	}
 
 	float sy2 = dot_prod(phenotypes, phenotypes, total);
-	for(uint32_t i = 0; i < rhht_snp_table_pcc->capacity; i++)
+	for(uint32_t i = 0; i < mh->max_heap_size; i++)
 	{
-		if(rhht_snp_table_pcc->buffer[i].key != 0)
+		if(mh->mh_array_f[i].key != 0)
 		{
 			// Calculate the chi squared value
-			chi_sq_val = cat_chi_sq(rhht_snp_table_pcc->buffer[i].ssqg, total, rhht_snp_table_pcc->buffer[i].dotprod, \
-						rhht_snp_table_pcc->buffer[i].sx, sy, sy2, rhht_snp_table_pcc->buffer[i].pc_projections);
+			chi_sq_val = cat_chi_sq(stats_table[i].ssqg, total, mh->mh_array_f[i].val, \
+									stats_table[i].sx, sy, sy2, stats_table[i].pc_projections);
 			if(isnan(chi_sq_val))
 			{
 				continue;
@@ -2226,7 +2212,7 @@ void rhht_init_cat_chi_sq(uint16_t total, int k)
 			// If the top-k array is not full, add current snp without any checks
 			if(num_used < k)
 			{
-				enc_id_buf[num_used] = rhht_snp_table_pcc->buffer[i].key;
+				enc_id_buf[num_used] = mh->mh_array_f[i].key;
 				enc_res_buf[num_used] = chi_sq_val;
 				num_used = num_used + 1;
 			}
@@ -2246,7 +2232,7 @@ void rhht_init_cat_chi_sq(uint16_t total, int k)
 				// Replace the element at index_min by the current element
 				if(chi_sq_val > enc_res_buf[index_min])
 				{
-					enc_id_buf[index_min] = rhht_snp_table_pcc->buffer[i].key;
+					enc_id_buf[index_min] = mh->mh_array_f[i].key;
 					enc_res_buf[index_min] = chi_sq_val;
 				}
 			}

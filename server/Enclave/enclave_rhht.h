@@ -2,11 +2,13 @@
 #define __ENCLAVE_RHHT_H
 
 #include "inttypes.h"
+#include "enclave_mh.h"
 
 #define LOAD_FACTOR_PERCENT	95
 
 extern struct rhht_table* rhht_snp_table;
 extern struct rhht_table_pcc* rhht_snp_table_pcc;
+extern struct elem_pcc* stats_table;
 
 struct elem
 {
@@ -20,14 +22,14 @@ struct elem
 // Each elem_pcc occupies 4 * k + 14 bytes
 struct elem_pcc
 {
-	uint32_t key;
+	//uint32_t key;
 
 	// Sum of squared (uncorrected) genotypes
 	uint16_t ssqg;
 
 	// Dot product between uncorrected genotypes and corrected phenotypes
 	// Equal to dot product between corrected genotypes and corrected phenotypes
-	float dotprod;
+	//float dotprod;
 
 	// s_x = sg - sc
 	// sc: sum of corrections to genotypes
@@ -36,7 +38,7 @@ struct elem_pcc
 	
 	// Projection of genotypes to the k-dimensional subspace from PCA
 	// s_xx = ssqg - <pc_projections, pc_projections>
-	float* pc_projections;
+	float pc_projections[2];
 };
 
 struct rhht_table
@@ -60,6 +62,7 @@ void allocate_table(uint32_t);
 
 void deallocate_table();
 
+void allocate_stats_table(uint32_t, uint8_t);
 void allocate_table_pcc(uint32_t, uint8_t);
 
 void deallocate_table_pcc();

@@ -1,9 +1,12 @@
 #include "stdlib.h"
 #include "string.h"
 #include "enclave_rhht.h"
+#include <sgx_trts.h>
+#include <algorithm>
 
 struct rhht_table* rhht_snp_table = NULL;
 struct rhht_table_pcc* rhht_snp_table_pcc = NULL;
+struct elem_pcc* stats_table = NULL;
 
 // Allocate memory for SNP hash table
 void allocate_table(uint32_t capacity)
@@ -32,29 +35,22 @@ void deallocate_table()
 	free(rhht_snp_table);
 }
 
-void allocate_table_pcc(uint32_t capacity, uint8_t num_pc)
+void allocate_stats_table(uint32_t capacity, uint8_t num_pc)
 {
-	// Allocate memory for the top hash_table structure
-	rhht_snp_table_pcc = (struct rhht_table_pcc*) malloc(sizeof(struct rhht_table_pcc));
-
-	// Initialization
-	rhht_snp_table_pcc->num_elems = 0;
-	rhht_snp_table_pcc->capacity = capacity;
-	rhht_snp_table_pcc->resize_threshold = (capacity * LOAD_FACTOR_PERCENT) / 100;
-	rhht_snp_table_pcc->k = num_pc;
-
-	// Allocate memory for the actual element buffer 
-	rhht_snp_table_pcc->buffer = (struct elem_pcc*) malloc(capacity * sizeof(struct elem_pcc));
-
-	// Mark all elements as unused
+	sort_mh_by_key();
+	stats_table = (struct elem_pcc*) malloc(capacity * sizeof(struct elem_pcc));
 	for(uint32_t i = 0; i < capacity; i++)
 	{
-		rhht_snp_table_pcc->buffer[i].key = 0;
-		rhht_snp_table_pcc->buffer[i].ssqg = 0;
-		rhht_snp_table_pcc->buffer[i].dotprod = 0;
-		rhht_snp_table_pcc->buffer[i].sx = 0;
-		rhht_snp_table_pcc->buffer[i].pc_projections = NULL; // Allocate when used
+		mh->mh_array_f[i].val = 0; // dotprod
+		stats_table[i].ssqg = 0;
+		stats_table[i].sx = 0;
+		stats_table[i].pc_projections[0] = 0;
+		stats_table[i].pc_projections[1] = 0;
 	}
+}
+
+void allocate_table_pcc(uint32_t capacity, uint8_t num_pc)
+{
 }
 
 void deallocate_table_pcc()
@@ -80,29 +76,10 @@ void construct(uint32_t index, uint32_t key, uint16_t case_count, uint16_t contr
 
 void construct_pcc(uint32_t index)
 {
-	rhht_snp_table_pcc->buffer[index].pc_projections = (float*) malloc(rhht_snp_table_pcc->k * sizeof(float));
-	
-	// Non standard way of initialization
-	memset(rhht_snp_table_pcc->buffer[index].pc_projections, 0, rhht_snp_table_pcc->k * sizeof(float));
 }
 
 void set_index(uint32_t index, uint32_t key_, float sg, float d, float sc, float* pr)
 {
-	rhht_snp_table_pcc->buffer[index].key = key_;
-	rhht_snp_table_pcc->buffer[index].ssqg = sg;
-	rhht_snp_table_pcc->buffer[index].dotprod = d;
-	rhht_snp_table_pcc->buffer[index].sx = sc;
-	if(pr != NULL)
-	{
-		for(int pc = 0; pc < rhht_snp_table_pcc->k; pc++)
-		{
-			rhht_snp_table_pcc->buffer[index].pc_projections[pc] = pr[pc];
-		}
-	}
-	else
-	{
-		rhht_snp_table_pcc->buffer[index].pc_projections = NULL;
-	}
 }
 
 inline uint32_t probe_distance(uint32_t key, uint32_t slot_index)
@@ -154,80 +131,15 @@ inline void insert_helper(uint32_t hash, uint32_t key, uint16_t case_count, uint
 
 inline void insert_helper_pcc(uint32_t hash, uint32_t key)
 {
-	uint32_t pos = hash;
-	uint32_t dist = 0;
-	uint32_t key_ = key;
-	uint32_t key__ = key;
-	float ssqg = 0;
-	float ssqg_ = 0;
-	float dotprod = 0;
-	float dotprod_ = 0;
-	float sx = 0;
-	float sx_ = 0;
-	float* pc_projections = NULL;
-	float* pc_projections_ = NULL;
-
-	for(;;)
-	{
-		if((rhht_snp_table_pcc->buffer[pos].key & ((rhht_snp_table_pcc->capacity) - 1)) == 0)
-		{
-			construct_pcc(pos);
-			rhht_snp_table_pcc->buffer[pos].key = key;
-			if(key_ != key)
-			{
-				set_index(pos, key_, ssqg, dotprod, sx, pc_projections);
-			}
-			return;
-		}
-		uint32_t existing_elem_probe_dist = probe_distance_pcc(rhht_snp_table_pcc->buffer[pos].key, pos);
-		if(existing_elem_probe_dist < dist)
-		{
-			key__ = rhht_snp_table->buffer[pos].key;
-			ssqg_ = rhht_snp_table_pcc->buffer[pos].ssqg;
-			dotprod_ = rhht_snp_table_pcc->buffer[pos].dotprod;
-			sx_ = rhht_snp_table_pcc->buffer[pos].sx;
-			pc_projections_ = rhht_snp_table_pcc->buffer[pos].pc_projections;
-
-			set_index(pos, key_, ssqg, dotprod, sx, pc_projections);
-
-			key_ = key__;
-			ssqg = ssqg_;
-			dotprod = dotprod_;
-			sx = sx_;
-			pc_projections = pc_projections_;
-
-			dist = existing_elem_probe_dist;
-		}
-
-		pos = pos + 1;
-		dist = dist + 1;
-	}
 }
 
 int32_t find_pcc(uint32_t key)
 {
-	uint32_t hash = key & ((rhht_snp_table_pcc->capacity) - 1);
-	uint32_t pos = hash;
-	uint32_t dist = 0;
-	for(;;)
-	{
-		uint32_t curr_hash = rhht_snp_table_pcc->buffer[pos].key & ((rhht_snp_table_pcc->capacity) - 1);
-		if(curr_hash == 0)
-		{
-			return -1;
-		}
-		else if(dist > probe_distance_pcc(rhht_snp_table_pcc->buffer[pos].key, pos))
-		{
-			return -1;
-		}
-		else if(curr_hash == hash && rhht_snp_table_pcc->buffer[pos].key == key)
-		{
-			return pos;
-		}
-
-		pos = pos + 1;
-		dist = dist + 1;
-	}
+	mh_node_f node;
+	node.key = key;
+	mh_node_f* p = stlpmtx_std::lower_bound(mh->mh_array_f, mh->mh_array_f + mh->max_heap_size, node, cmp_mh_key);
+	if (p == mh->mh_array_f + mh->max_heap_size || p->key != key) { return -1; }
+	else { return p - mh->mh_array_f; }
 }
 
 // Expand the hash table if the number of elements exceed the resize threshold
@@ -254,34 +166,6 @@ void grow()
 
 void grow_pcc()
 {
-	struct elem_pcc* old_elems = rhht_snp_table_pcc->buffer;
-	uint32_t old_capacity = rhht_snp_table_pcc->capacity;
-	uint32_t new_capacity = old_capacity * 2;
-
-	allocate_table_pcc(new_capacity, rhht_snp_table_pcc->k);
-
-	for(uint32_t i = 0; i < old_capacity; i++)
-	{
-		struct elem_pcc e = old_elems[i];
-		uint32_t key = e.key;
-		uint32_t hash = key & (new_capacity - 1);
-		if(key != 0)
-		{
-			insert_helper_pcc(hash, e.key);
-			uint32_t pos = find_pcc(e.key);
-			set_index(pos, e.key, e.ssqg, e.dotprod, e.sx, e.pc_projections);
-		}
-	}
-
-	// Deallocate old elements
-	for(uint32_t i = 0; i < old_capacity; i++)
-	{ 
-		if(old_elems[i].pc_projections != NULL)
-		{
-			free(old_elems[i].pc_projections);
-		}
-	}
-	free(old_elems);
 }
 
 void insert(uint32_t key, uint8_t allele_type, uint8_t patient_status)
