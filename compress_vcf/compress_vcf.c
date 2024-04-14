@@ -3,8 +3,12 @@
 #include <string.h>
 #include <inttypes.h>
 
-#define MAX_BUFFER_SIZE	500000
+#define MAX_BUFFER_SIZE	5000000
 #define	MAX_FNAME		256
+
+/* Buffers for homozygous and heterozygous SNPs */
+static uint32_t buffer_homozygous[MAX_BUFFER_SIZE] = {0};
+static uint32_t buffer_heterozygous[MAX_BUFFER_SIZE] = {0};
 
 void strip_ext(char* fname)
 {
@@ -96,9 +100,6 @@ int main(int argc, char** argv)
 	 */
 	uint32_t line_start_heterozygous = 0;
 
-	/* Buffers for homozygous and heterozygous SNPs */
-	uint32_t buffer_homozygous[MAX_BUFFER_SIZE] = {0};
-	uint32_t buffer_heterozygous[MAX_BUFFER_SIZE] = {0};
 	uint32_t num_heterozygous = 0;
 
 	/* Read and process file line by line */
@@ -134,6 +135,11 @@ int main(int argc, char** argv)
 				if(col_num == 6)
 				{
 					int dropped = 0;
+					if(token[0] == '.')
+					{
+						dropped = 1;
+						break;
+					}
 					for(i = 0; i < tok_count; i++)
 					{
 						if(strstr(token, filter_arr[i]) != NULL)
@@ -142,7 +148,7 @@ int main(int argc, char** argv)
 							break;
 						}
 					}
-					if(dropped)
+					if(dropped) // redundant
 					{
 						break;
 					}
