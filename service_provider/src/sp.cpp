@@ -78,7 +78,6 @@ void send_encrypted_vcf(MsgIO* msgio, uint32_t num_files, uint32_t chunk_size, i
 
 	for(uint32_t i = 0; i < num_files; i++)
 	{
-		fprintf(stderr, "%s\n", filenames[index[i]] + 20);
 		if(stat(filenames[index[i]], &st) != -1)
 		{
 			// Open input binary file for reading
@@ -285,11 +284,6 @@ void run_sp(MsgIO* msgio, uint32_t nf, char* fdir, char* ufname, uint32_t csz, i
 		swap(&index[i], &index[j]);
 	}
 	
-	// j = rand() % nf;
-	// swap(&index[nf-1], &index[j]);
-
-	fprintf(stderr, "%d %s\n", index[nf-1], filenames[index[nf-1]]);
-
 	// Currently support 5 distinct protocols
 	switch(mode)
 	{
