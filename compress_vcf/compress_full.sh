@@ -1,14 +1,11 @@
 #!/bin/bash
 
-case_indir="../iDASH/case/"
-control_indir="../iDASH/control/"
-outdir="../iDASH/bin/"
-unique_snp_output="../iDASH/unique_snps.bin"
+case_indir="../test_data/case/"
+control_indir="../test_data/control/"
 
-#case_indir="../test_data/case/"
-#control_indir="../test_data/control/"
-#outdir="../test_data/bin/"
-#unique_snp_output="../test_data/unique_snps.bin"
+outdir="../test_data/bin/"
+
+unique_snp_output="../test_data/unique_snps.bin"
 
 for fname in "$case_indir"*.vcf; do
 	./compress_vcf "$fname" "1"
