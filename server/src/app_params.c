@@ -10,7 +10,8 @@ void init_app_params(app_parameters** params)
 	(*params)->port = NULL;
 	(*params)->app_mode = NULL;
 	(*params)->output_file = NULL;
-	(*params)->snps_input_file = NULL;
+	(*params)->uniq_snps_input_file = NULL;
+	(*params)->pca_snps_input_file = NULL;
 	(*params)->num_files = 0;
 	(*params)->num_files_case = 0;
 	(*params)->num_cases = 0;
@@ -19,6 +20,7 @@ void init_app_params(app_parameters** params)
 	(*params)->k = 100;
 	(*params)->num_buckets = (1 << 21);
 	(*params)->num_uniq_buckets = 0;
+	(*params)->num_pca_snps = 0;
 	(*params)->init_capacity = (1 << 23);
 	(*params)->hash_option = 1;
 	(*params)->sketch_mode = 1;

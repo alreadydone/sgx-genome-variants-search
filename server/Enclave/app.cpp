@@ -94,6 +94,11 @@ void enclave_init_uniq(uint32_t UNIQ_CNT, uint32_t* ID)
 	uniq_init(UNIQ_CNT, ID);
 }
 
+void enclave_init_pca(uint32_t SNPS_CNT, uint32_t* ID)
+{
+	pca_init(SNPS_CNT, ID);
+}
+
 void enclave_decrypt_update_mcsk(sgx_ra_context_t ctx, uint8_t* ciphertext, size_t ciphertext_len)
 {
 	// Buffer to hold the secret key
@@ -882,7 +887,7 @@ void enclave_decrypt_process_rhht_pcc(sgx_ra_context_t ctx, uint8_t* ciphertext,
 		// If found, update entry based on allele type
 		if(index != -1)
 		{
-			printf("%d ", index);
+			//printf("%d ", index);
 			stats_table[index].ssqg += 4;
 			//if (file_idx == num_files) printf("index okay\n");
 			mh->mh_array_f[index].val += (phenotypes[file_idx] * 2);

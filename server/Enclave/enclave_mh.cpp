@@ -5,7 +5,7 @@ struct min_heap* mh = NULL;
 
 int cmpfunc_mh_key(const void *a, const void *b)
 {
-	return ((mh_node_f*) a)->key < ((mh_node_f*) b)->key;
+	return ((mh_node_f*) a)->key - ((mh_node_f*) b)->key;
 }
 int cmp_mh_key(const mh_node_f &a, const mh_node_f &b)
 {

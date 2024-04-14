@@ -91,6 +91,8 @@ enclave
 
                 // Unique buckets public ECALL interface
                 public void enclave_init_uniq(uint32_t UNIQ_CNT, [user_check] uint32_t* ID);
+		// Learned SNPs for PCA public ECALL interface
+		public void enclave_init_pca(uint32_t PCA_SNPS_CNT, [user_check] uint32_t* ID);
 		// Count-Sketch public ECALL interface
 		public void enclave_init_csk(int CSK_WIDTH, int CSK_DEPTH);
 		public void enclave_init_csk_f(int CSK_WIDTH, int CSK_DEPTH);
