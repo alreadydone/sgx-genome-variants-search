@@ -20,7 +20,6 @@ in the License.
 #include <stdlib.h>
 #include <string.h>
 #include <sgx_utils.h>
-#include <sgx_tae_service.h>
 #include <sgx_tkey_exchange.h>
 
 static const sgx_ec256_public_t def_service_public_key = {
@@ -88,68 +87,6 @@ size_t get_pse_manifest_size ()
 {
 	return sizeof(sgx_ps_sec_prop_desc_t);
 }
-
-sgx_status_t get_pse_manifest(char *buf, size_t sz)
-{
-	sgx_ps_sec_prop_desc_t ps_sec_prop_desc;
-	sgx_status_t status= SGX_ERROR_SERVICE_UNAVAILABLE;
-	int retries= PSE_RETRIES;
-
-	do {
-		status= sgx_create_pse_session();
-		if ( status != SGX_SUCCESS ) return status;
-	} while (status == SGX_ERROR_BUSY && retries--);
-	if ( status != SGX_SUCCESS ) return status;
-
-	status= sgx_get_ps_sec_prop(&ps_sec_prop_desc);
-	if ( status != SGX_SUCCESS ) return status;
-
-	memcpy(buf, &ps_sec_prop_desc, sizeof(ps_sec_prop_desc));
-
-	sgx_close_pse_session();
-
-	return status;
-}
-
-sgx_status_t enclave_ra_init(sgx_ec256_public_t key, int b_pse,
-	sgx_ra_context_t *ctx, sgx_status_t *pse_status)
-{
-	sgx_status_t ra_status;
-
-	/*
-	 * If we want platform services, we must create a PSE session 
-	 * before calling sgx_ra_init()
-	 */
-
-	if ( b_pse ) {
-		int retries= PSE_RETRIES;
-		do {
-			*pse_status= sgx_create_pse_session();
-			if ( *pse_status != SGX_SUCCESS ) return SGX_ERROR_UNEXPECTED;
-		} while (*pse_status == SGX_ERROR_BUSY && retries--);
-		if ( *pse_status != SGX_SUCCESS ) return SGX_ERROR_UNEXPECTED;
-	}
-
-	ra_status= sgx_ra_init(&key, b_pse, ctx);
-
-	if ( b_pse ) {
-		int retries= PSE_RETRIES;
-		do {
-			*pse_status= sgx_create_pse_session();
-			if ( *pse_status != SGX_SUCCESS ) return SGX_ERROR_UNEXPECTED;
-		} while (*pse_status == SGX_ERROR_BUSY && retries--);
-		if ( *pse_status != SGX_SUCCESS ) return SGX_ERROR_UNEXPECTED;
-	}
-
-	return ra_status;
-}
-
-sgx_status_t enclave_ra_init_def(int b_pse, sgx_ra_context_t *ctx,
-	sgx_status_t *pse_status)
-{
-	return enclave_ra_init(def_service_public_key, b_pse, ctx, pse_status);
-}
-
 
 sgx_status_t enclave_ra_close(sgx_ra_context_t ctx)
 {
