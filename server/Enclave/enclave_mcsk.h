@@ -9,6 +9,8 @@
 #define HASH_MIN_32	-2147483640
 
 extern struct mcsk* m_mcsk;
+extern uint32_t PCA_SNP_count;
+extern uint32_t* PCA_SNP_IDs;
 
 // Matrix Count Sketch: For Random Projection of Rows  
 typedef struct mcsk 
@@ -24,6 +26,7 @@ typedef struct mcsk
 	uint64_t* seeds;
 } mcsk;
 
+void pca_init(uint32_t width, uint32_t* IDs);
 void mcsk_init(uint32_t, uint32_t, float);
 void mcsk_quick_init(uint32_t, uint32_t);
 void mcsk_setk(uint32_t);

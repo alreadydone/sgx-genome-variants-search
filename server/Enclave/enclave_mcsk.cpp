@@ -1,11 +1,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sgx_trts.h>
+#include <algorithm>
 #include "math.h"
 #include "util.h"
 #include "enclave_mcsk.h"
 
 struct mcsk* m_mcsk = NULL;
+uint32_t PCA_SNP_count = 0;
+uint32_t* PCA_SNPs = NULL;
+
+void pca_init(uint32_t width, uint32_t* IDs)
+{
+        PCA_SNP_count = width;
+        PCA_SNPs = IDs;
+}
 
 void mcsk_init_seeds()
 {
@@ -28,8 +37,7 @@ void mcsk_init(uint32_t width, uint32_t num_pc, float eps)
 	m_mcsk->m = width;
 	m_mcsk->k = num_pc;
 	m_mcsk->epsilon = eps;
-	m_mcsk->depth = (uint32_t) ceilf(num_pc / (eps * eps));
-	m_mcsk->depth = 0x1u << (31 - __builtin_clz(m_mcsk->depth));
+	m_mcsk->depth = PCA_SNP_count;
 	uint32_t depth = m_mcsk->depth;
 	m_mcsk->depth_minus_one = depth - 1;
 
@@ -95,16 +103,18 @@ void mcsk_free()
 	}
 }
 
+uint32_t pca_snps_find(uint32_t ID)
+{
+	uint32_t* p = stlpmtx_std::lower_bound(PCA_SNPs, PCA_SNPs + PCA_SNP_count, ID);
+	if (p == PCA_SNPs + PCA_SNP_count || *p != ID) { return PCA_SNP_count; }
+	else { return p - PCA_SNPs; }
+}
+
 void mcsk_update_var(uint64_t item, uint32_t col, float count) 
 {
-	uint32_t hash;
-	uint32_t row;
-	float count_;
-
-	hash = cal_hash(item, m_mcsk->seeds[0], m_mcsk->seeds[1]);
-	row = hash & m_mcsk->depth_minus_one;
-	hash = cal_hash(item, m_mcsk->seeds[2], m_mcsk->seeds[3]);
-	count_ = (((hash & 0x1) == 0) ? -1 : 1) * count;
+	uint32_t row = pca_snps_find(item);
+	float count_ = count;
+	if (row >= PCA_SNP_count) return;
 	m_mcsk->msketchf[row][col] = m_mcsk->msketchf[row][col] + count_;
 	m_mcsk->msketchf[row][m_mcsk->m] = m_mcsk->msketchf[row][m_mcsk->m] + count_;
 }

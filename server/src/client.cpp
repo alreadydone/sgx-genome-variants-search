@@ -8,6 +8,7 @@
 #include <ctime>
 #include <chrono>
 #include <thread>
+#include <algorithm>
 #include "sgx_urts.h"
 #include "ra.h"
 #include "Enclave_u.h"
@@ -1105,8 +1106,28 @@ void app_cms(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case, uint
 	}
 }
 
+void read_and_sort(uint32_t width, char* ifn, uint32_t* IDs)
+{
+	ifstream fstr;
+	fstr.open(ifn);
+	fstr.read((char*)IDs, width * sizeof(uint32_t));
+	fstr.close();
+	for(int i = 0; i < width; i++)
+	{
+		uint32_t num = IDs[i];
+		// convert big-endian to little-endian
+		IDs[i] =
+			((num & 0x000000FF) << 24) |
+			((num & 0x0000FF00) << 8) |
+			((num & 0x00FF0000) >> 8) |
+			((num & 0xFF000000) >> 24);
+	}
+	sort(IDs, IDs + width);
+}
+
 void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case, \
-	uint32_t csz, int l, char *ofn, int k, int w, int d, int num_pc, float eps, \
+	uint32_t csz, int l, char *ofn, char *ufn, uint32_t uw, char* pfn, uint32_t pw, \
+	int k, int w, int d, int num_pc, float eps, \
 	bool sketching_flag, bool debug_flag)
 {
 	// Get the Enclave ID from the configuration
@@ -1115,6 +1136,13 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 	// Get the Remote Attestation context from the configuration
 	auto& ra_ctx = config.ra_ctx;
 
+	uint32_t* uniq_IDs = new uint32_t[uw];
+	read_and_sort(uw, ufn, uniq_IDs);
+	uint32_t* PCA_IDs = new uint32_t[pw];
+	read_and_sort(pw, pfn, PCA_IDs);
+
+	// Make an ECALL to initialize the array of learned SNPs for PCA
+	enclave_init_pca(eid, pw, PCA_IDs);
 	// Make an ECALL to initialize the Enclave CSK structure
 	enclave_init_mcsk(eid, nf, num_pc, eps);
 
@@ -1204,6 +1232,8 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 
 		// Make an ECALL to initialize the Enclave CSK structure
 		enclave_init_csk_f(eid, w, d);
+		// Make an ECALL to initialize unique buckets
+		enclave_init_uniq(eid, uw, uniq_IDs);
 
 		// Second Pass: Update the CSK structure
 		fprintf(stderr, "Second Pass, updating CSK ...\n");
@@ -1304,6 +1334,7 @@ void app_svd_mcsk(MsgIO* msgio, config_t& config, uint32_t nf, uint32_t nf_case,
 		// Stop timer and report time for the second pass over the data
 		duration = (std::clock() - start) / (double) CLOCKS_PER_SEC;
 		fprintf(stderr, "Third Pass (CSK) took: %lf seconds\n", duration);
+		enclave_free_csk(eid);
 
 		// Last Pass: Use rhht and mh for pcc
 		fprintf(stderr, "Last pass, C-A Trend Test ...\n");
@@ -1501,6 +1532,24 @@ void new_parse(char* param_path, app_parameters** params, config_t& config)
 				{
 					(*params)->output_file = (char*) malloc(sizeof(char) * (strlen(token) + 1));
 					strncpy((*params)->output_file, token, strlen(token) + 1);
+				}
+				else if(strcmp(var_name, "UNIQ_BUCKET_SNPS") == 0)
+				{
+					(*params)->uniq_snps_input_file = (char*) malloc(sizeof(char) * (strlen(token) + 1));
+					strncpy((*params)->uniq_snps_input_file, token, strlen(token) + 1);
+				}
+				else if(strcmp(var_name, "NUM_UNIQ_BUCKETS") == 0)
+				{
+					(*params)->num_uniq_buckets = atoi(token);
+				}
+				else if(strcmp(var_name, "PCA_SNPS") == 0)
+				{
+					(*params)->pca_snps_input_file = (char*) malloc(sizeof(char) * (strlen(token) + 1));
+					strncpy((*params)->pca_snps_input_file, token, strlen(token) + 1);
+				}
+				else if(strcmp(var_name, "NUM_PCA_SNPS") == 0)
+				{
+					(*params)->num_pca_snps = atoi(token);
 				}
 				else if(strcmp(var_name, "NUM_FILES") == 0)
 				{
@@ -1726,7 +1775,6 @@ int main(int argc, char** argv)
         bool proceed = true; 
 
         if (do_ra) {
-            proceed = !remote_attestation(config, &msgio);
         } else {
             fprintf(stderr, "Skipping Remote Attestation.\n");
             proceed = !skip_ra(config, &msgio);
@@ -1800,7 +1848,8 @@ int main(int argc, char** argv)
 				exit(1);
 			}
 			app_svd_mcsk(msgio, config, params->num_files, params->num_files_case, \
-					params->chunk_size, params->l, params->output_file, \
+					params->chunk_size, params->l, params->output_file, params->uniq_snps_input_file, \
+					params->num_uniq_buckets, params->pca_snps_input_file, params->num_pca_snps, \
 					params->k, params->sketch_width, params->sketch_depth, \
 					params->num_pc, params->eps, false, false);
 		}
@@ -1813,7 +1862,8 @@ int main(int argc, char** argv)
 				exit(1);
 			}
 			app_svd_mcsk(msgio, config, params->num_files, params->num_files_case, \
-					params->chunk_size, params->l, params->output_file, \
+					params->chunk_size, params->l, params->output_file, params->uniq_snps_input_file, \
+					params->num_uniq_buckets, params->pca_snps_input_file, params->num_pca_snps, \
 					params->k, params->sketch_width, params->sketch_depth, \
 					params->num_pc, params->eps, true, false);
 		}
