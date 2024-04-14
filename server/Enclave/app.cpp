@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sgx_utils.h>
-#include <sgx_tae_service.h>
 #include <sgx_tkey_exchange.h>
 #include "config.h"
 #include "Enclave_t.h"
