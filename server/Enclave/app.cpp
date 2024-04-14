@@ -62,6 +62,16 @@ void enclave_init_mcsk(int MCSK_WIDTH, int MCSK_NUM_PC, float MCSK_EPS)
 	phenotypes = (float*) malloc(MCSK_WIDTH * sizeof(float));
 }
 
+void enclave_init_uniq(uint32_t UNIQ_CNT, uint32_t* ID)
+{
+	uniq_init(UNIQ_CNT, ID);
+}
+
+void enclave_init_pca(uint32_t SNPS_CNT, uint32_t* ID)
+{
+	pca_init(SNPS_CNT, ID);
+}
+
 void enclave_decrypt_update_mcsk(sgx_ra_context_t ctx, uint8_t* ciphertext, size_t ciphertext_len)
 {
 	// Buffer to hold the secret key
