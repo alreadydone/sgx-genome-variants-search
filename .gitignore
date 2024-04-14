@@ -6,11 +6,10 @@ app
 *.so
 Enclave_u.*
 Enclave_t.*
-server/*.txt
+server/settings
+service_provider/settings
 .*.swp
 top_snps
-iDASH
-UKB
 test_data/bin
 test_data/count_unique.py
 test_data/unique_snps.bin
