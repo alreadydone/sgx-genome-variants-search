@@ -6,7 +6,7 @@ SGX_ARCH ?= x64
 SGX_PRERELEASE ?= 0
 OpenSSL_Path ?= /opt/openssl/1.1.1o
 Curl_Path ?= 
-SGX_SSL_Dir ?= /opt/intel/sgxssl
+SGX_SSL_Dir ?= /u/xu56/intel-sgx-ssl-install
 
 ifeq ($(shell getconf LONG_BIT), 32)
 	SGX_ARCH := x86

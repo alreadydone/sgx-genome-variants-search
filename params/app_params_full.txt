@@ -6,23 +6,31 @@ PORT_NUMBER=7777
 
 APP_MODE=full
 
-NUM_FILES=1000
+NUM_FILES=4000
 
-NUM_CASE_FILES=500
+NUM_CASE_FILES=2000
 
-CHUNK_SIZE=500000
+CHUNK_SIZE=5000000
 
-NUM_TOP_SNPS=100
+NUM_TOP_SNPS=1048576
 
-NUM_TOP_CAND=15
+NUM_TOP_CAND=20
 
-SKETCH_WIDTH=12
+SKETCH_WIDTH=20
 
 SKETCH_DEPTH=8
 
 NUM_PC=2
 
-OUTPUT_FILE=./top_snps.txt
+NUM_UNIQ_BUCKETS=4194304
+
+NUM_PCA_SNPS=4096
+
+UNIQ_BUCKET_SNPS=/u/xu56/sgx-genome-variants-search/server/num_train_ordered_rsid_random_400.bin
+
+PCA_SNPS=/u/xu56/sgx-genome-variants-search/server/rsid_eig0_sim_top_4096_400.bin
+
+OUTPUT_FILE=/u/xu56/sgx-genome-variants-search/server/fully_learned_results.txt
 
 EPSILON=0.022
 

@@ -7,13 +7,13 @@ PORT_NUMBER=7777
 #One of "basic", "sketch", "sketch_topk", "preprocess", "full"
 APP_MODE=full
 
-NUM_FILES=1000
+NUM_FILES=4000
 
-VCF_DIR=../test_data/bin/
+VCF_DIR=/u/xu56/sgx-genome-variants-search/UKB/bin_complete
 
-CHUNK_SIZE=500000
+CHUNK_SIZE=5000000
 
-SNP_IDS=../test_data/unique_snps.bin
+SNP_IDS=/u/xu56/sgx-genome-variants-search/UKB/unique_snps_complete.bin
 
 #======================================================================
 # Global options
@@ -106,7 +106,7 @@ IAS_REPORT_SIGNING_CA_FILE=/home/ckockan/sgx-genome-variants-search/keys/Attesta
 #======================================================================
 
 # Set to non-zero for verbose output
-VERBOSE=0
+VERBOSE=1
 
 # Set to non-zero for debugging output
-DEBUG=0
+DEBUG=1
